@@ -36,35 +36,61 @@ comment "#";
 
 # Expression operations and their precedence levels
 
-EMul. Exp12    ::= Exp12 "*" Exp13 ;
-EDiv. Exp12    ::= Exp12 "/" Exp13 ;
-EAdd. Exp11    ::= Exp11 "+" Exp12 ;
-ESub. Exp11    ::= Exp11 "-" Exp12 ;
+EInt.           Exp16   ::= Integer ;
+EDouble.        Exp16   ::= Double ;
+EString.        Exp16   ::= String ;
+ETrue.          Exp16   ::= ”true” ;
+EFalse.         Exp16   ::= ”false” ;
+EId.            Exp16   ::= Id ;
 
-ESm. Exp9   ::= Exp9 "<" Exp10 ;
-EGt. Exp9   ::= Exp9 ">" Exp10 ;
-ESmEq. Exp9 ::= Exp9 "<=" Exp10 ;
-EGtEq. Exp9 ::= Exp9 ">=" Exp10 ;
-EEq. Exp8   ::= Exp8 "==" Exp9 ;
-ENEq. Exp8  ::= Exp8 "!=" Exp9 ;
-EAnd. Exp4  ::= Exp4 "&&" Exp5 ;
-EOr. Exp3   ::= Exp3 "||" Exp4 ;
-EAss. Exp2  ::= Exp3 "=" Exp2 ;
+ECall.          Exp15   ::= Id ”(” [Exp] ”)” ;
 
-EInt. Exp15    ::= Integer ;
-EDouble. Exp15 ::= Double ;
-EString. Exp15 ::= String ;
-ETrue. Exp15   ::= ”true” ;
-EFalse. Exp15  ::= ”false” ;
-EId. Exp15     ::= Id ;
-ECall. Exp15   ::= Id ”(” [Exp] ”)” ;
-EPIncr. Exp14  ::= Exp15 ”++” ;
-EPDecr. Exp14  ::= Exp15 ”--” ;
-EIncr. Exp13   ::= ”++” Exp14 ;
-EDecr. Exp13   ::= ”–-” Exp14 ;
-ENeg. Exp13    ::= ”-” Exp14 ;
-coercions Exp 15 ;
-separator Exp ”,” ;
+EIndex.		Exp15	::= Id "::" Id ;
+EQuali.		Exp15	::= Id "[" Id "]" ;
+
+EPIncr.         Exp14   ::= Exp15 ”++” ;
+EPDecr.         Exp14   ::= Exp15 ”--” ;
+EDeref.		Exp14   ::= "*" Id ;
+
+EDot.		Exp14	::= Id "." Id ;
+EArrow.		Exp14	::= Id "->" Id ;
+
+EIncr.          Exp13   ::= ”++” Exp14 ;
+EDecr.          Exp13   ::= ”–-” Exp14 ;
+ELogNeg.        Exp13	::= "!" Exp16 ;
+
+ENeg.           Exp13   ::= ”-” Exp14 ;
+
+EMul.           Exp12   ::= Exp12 "*" Exp13 ;
+EDiv.           Exp12   ::= Exp12 "/" Exp13 ;
+EMod.           Exp12   ::= Exp12 "%" Exp13 ;
+
+EAdd.           Exp11   ::= Exp11 "+" Exp12 ;
+ESub.           Exp11   ::= Exp11 "-" Exp12 ;
+
+ELShift.	Exp10	::= Exp10 "<<" Exp11 ;
+ERShift.	Exp10	::= Exp10 ">>" Exp11 ;
+
+ESm.            Exp9    ::= Exp9 "<" Exp10 ;
+EGt.            Exp9    ::= Exp9 ">" Exp10 ;
+ESmEq.          Exp9    ::= Exp9 "<=" Exp10 ;
+EGtEq.          Exp9    ::= Exp9 ">=" Exp10 ;
+
+EEq.            Exp8    ::= Exp8 "==" Exp9 ;
+ENEq.           Exp8    ::= Exp8 "!=" Exp9 ;
+
+EAnd.           Exp4    ::= Exp4 "&&" Exp5 ;
+
+EOr.            Exp3    ::= Exp3 "||" Exp4 ;
+
+EAss.           Exp2    ::= Exp3 "=" Exp2 ;
+EAssPlus.       Exp2    ::= Exp3 "+=" Exp2 ;
+EAssMinus.      Exp2    ::= Exp3 "-=" Exp2 ;
+
+ECond.          Exp2    ::= Exp3 "?" Stm ":" Stm ;
+
+coercions       Exp 16 ;
+separator       Exp ”,” ;
 
 
 
