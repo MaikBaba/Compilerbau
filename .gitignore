@@ -20,6 +20,9 @@
 *.tar
 *.zip
 
+
+lab1-testsuite-larger/
+
 # Logs and databases #
 ######################
 *.log
