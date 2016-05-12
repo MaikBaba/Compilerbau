@@ -6,6 +6,15 @@
 *.exe
 *.o
 *.so
+*.hi
+*.hs
+*.txt
+*.bak
+*.x
+*.y
+*.cc
+
+
 
 # Packages #
 ############
@@ -22,6 +31,8 @@
 
 
 lab1-testsuite-larger/
+TestMyCpp
+Makefile
 
 # Logs and databases #
 ######################
