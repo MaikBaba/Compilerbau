@@ -1,22 +1,28 @@
 
 PDefs. Program ::= [Def] ;
 
-DFunc. Def ::= Type Id "("[Arg]")""{"[Stm]"}" ;
+DFunc. Def ::= Type Id "("[Arg]")" "{"[Stm]"}" ;
 
 
-terminator Def"";
+terminator Def "" ;
 terminator Stm "" ;
 separator Arg "," ;
 separator nonempty Id "," ;
 
-token Id (letter (letter | digit | ' ')*) ;
 
 
-Tbool. Type   ::= "bool";
-Tdouble. Type ::= "double";
-Tint. Type    ::= "int";
-Tstring. Type ::= "string";
-Tvoid. Type   ::= "void";
+Tbool.    Type ::= "bool";
+Tdouble.  Type ::= "double";
+Tint.     Type ::= "int";
+Tstring.  Type ::= "string";
+Tvoid.    Type ::= "void";
+
+TQCOT.Type ::= [QCOT];
+separator nonempty QCOT "::" ;
+
+QCOTId. QCOT ::= Id;
+QCOTTemplate . QCOT ::= Id "<" [Type] ">";
+separator Type "," ;
 
 
 
@@ -41,13 +47,13 @@ comment "/*" "*/";
 comment "#" ;
 
 
-
 EInt.           Exp16 ::= Integer ;
 EDouble.        Exp16 ::= Double ;
 EString.        Exp16 ::= String ;
 ETrue.          Exp16 ::= "true" ;
 EFalse.         Exp16 ::= "false" ;
-EId.            Exp16 ::= Id ;
+--EId.            Exp16 ::= Id ;
+EQCOT.          Exp16 ::= [QCOT];
 
 ECall. Exp15 ::= Id "(" [Exp] ")" ;
 
@@ -98,6 +104,7 @@ ECond.          Exp2  ::= Exp3 "?" Stm ":" Stm ;
 coercions       Exp 16 ;
 separator       Exp "," ;
 
+token Id (letter (letter | digit | '_')*) ;
 
 
 
