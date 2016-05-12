@@ -1,17 +1,26 @@
 
 PDefs. Program ::= [Def] ;
-terminator Def"";
-
-
 
 DFunc. Def ::= Type Id "("[Arg]")""{"[Stm]"}" ;
-separator Arg "," ;
+
+terminator Def"";
 terminator Stm "" ;
+separator Arg "," ;
+separator nonempty Id "," ;
+
+token Id (letter (letter | digit | ' ')*) ;
+
+
+Tbool. Type   ::= "bool";
+Tdouble. Type ::= "double";
+Tint. Type    ::= "int";
+Tstring. Type ::= "string";
+Tvoid. Type   ::= "void";
 
 
 
 SExp. Stm   ::= Exp";" ;
-SDecl. Stm  ::= Type Id";" ;
+SDecl. Stm  ::= Type Id" ;" ;
 SDecls. Stm ::= Type Id "," [Id]";" ;
 SInit. Stm  ::= Type Id "=" Exp ";" ;
 
