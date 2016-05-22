@@ -1,46 +1,72 @@
--- Programm
+-- Programm -------------------------------------------------------------------------------
 
 PDefs.              Program ::= [Def] ;
 
 
--- Definitions
+-- Definitions -------------------------------------------------------------------------------
 
-DFunc.              Def ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DFunc.            Def ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DTypedef.         Def ::= "typedef" Type Id ";" ;
+DStruct.          Def ::= "struct" Id "{" [Stm] "}" ";" ;
+DVar.             Def ::= VarInit ;
+DUsing.           Def ::= "using" QCOTType ";" ;     
 
 terminator          Def "" ;
 terminator          Stm "" ;
 separator           Arg "," ;
 separator nonempty  Id "," ;
 
--- BasicTypes
+-- BasicTypes -------------------------------------------------------------------------------
 
-Tbool.              Type ::= "bool" ;
-Tdouble.            Type ::= "double" ;
-Tint.               Type ::= "int" ;
-Tstring.            Type ::= "string" ;
-Tvoid.              Type ::= "void" ;
-Tchar.              Type ::= "char" ;
-Tshort.             Type ::= "short" ;
-Tlong.              Type ::= "long" ;
-Tfloat.             Type ::= "float" ;
-Tsigned.            Type ::= "signed" ;
-Tunsigned.          Type ::= "unsigned" ;
+Tbool.              BasicType ::= "bool" ;
+Tdouble.            BasicType ::= "double" ;
+Tint.               BasicType ::= "int" ;
+Tstring.            BasicType ::= "string" ;
+Tvoid.              BasicType ::= "void" ;
+Tchar.              BasicType ::= "char" ;
+Tshort.             BasicType ::= "short" ;
+Tlong.              BasicType ::= "long" ;
+Tfloat.             BasicType ::= "float" ;
+Tsigned.            BasicType ::= "signed" ;
+Tunsigned.          BasicType ::= "unsigned" ;
 
-TQCOT.              Type ::= [QCOT] ;
-separator nonempty  QCOT "::" ;
+DefType.            Type ::= BasicType RefOperators ;
+DefQCOTType.        Type ::= QCOTType RefOperators ;
 
-QCOTId.             QCOT ::= Id ;
-QCOTTemplate.       QCOT ::= Id "<" [Type] ">" ;
+OpRef.              RefOperator ::= "&" ;
+OpStar.             RefOpertor ::= "*" ;
+
+PostfixNothing.     RefOperators::= ;
+PostfixList.        RefOperators ::= RefOperator RefOperators;
+
 
 separator           Type "," ;
 
--- Statments
 
 
-SExp.               Stm ::= Exp ";" ;
-SDecl.              Stm ::= Type Id ";" ;
-SDecls.             Stm ::= Type Id "," [Id] ";" ;
-SInit.              Stm ::= Type Id "=" Exp ";" ;
+-- Qualified constants and template instantiations -------------------------------------------------------------------------------
+
+-- separator nonempty  QCOT "::" ;
+
+QCOTId.             QCOT ::= Id ;
+
+QCOTTemplate.       QCOT ::= Id "<" [Type] ">" ;
+
+QCOTEnd.  QCOTType ::= QCOT ;
+QCOTList. QCOTType ::= QCOT "::" Type ;
+-- todo this creates 2 more shift reduce conflicts adding Type instead of QCOTType in the Rule QCOTList
+
+
+-- Statements -------------------------------------------------------------------------------
+
+
+SExp.                 Stm ::= Exp ";" ;
+SVarInit.             Stm ::= VarInit ;
+
+
+SDecl.              VarInit ::= Type Id ";" ;
+SDecls.             VarInit ::= Type Id "," [Id] ";" ;
+SInit.              VarInit ::= Type Id "=" Exp ";" ;
 
 
 SReturn.            Stm ::= "return" Exp ";" ;
@@ -61,14 +87,14 @@ STypedef.           Stm ::= "typedef" Type Id ";" ;
 ADecl.              Arg ::= Type Id ;
 
 
--- Comments
+-- Comments -------------------------------------------------------------------------------
 
 comment "//" ;
 comment "/*" "*/";
 comment "#" ;
 
 
--- Expressions
+-- Expressions -------------------------------------------------------------------------------
 
 EInt.               Exp16 ::= Integer ;
 EDouble.            Exp16 ::= Double ;
@@ -77,7 +103,7 @@ EChar.              Exp16 ::= Char ;
 ETrue.              Exp16 ::= "true" ;
 EFalse.             Exp16 ::= "false" ;
 --EId.            Exp16 ::= Id ;
-EQCOT.              Exp16 ::= [QCOT] ;
+EQCOT.              Exp16 ::= QCOTType ;
 
 ECall.              Exp15 ::= Id "(" [Exp] ")" ;
 
@@ -133,7 +159,7 @@ EAssAnd.            Exp2  ::= Exp3 "&=" Exp2 ;
 EAssXor.            Exp2  ::= Exp3 "^=" Exp2 ;
 EAssOr.             Exp2  ::= Exp3 "|=" Exp2 ;
 
-ECond.              Exp2  ::= Exp3 "?" Stm ":" Stm ;
+ECond.              Exp2  ::= Exp3 "?" Exp2 ":" Exp2 ;
 
 EExcep.             Exp1  ::= "throw" Exp2 ;
 
