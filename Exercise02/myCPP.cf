@@ -10,7 +10,6 @@ separator Arg "," ;
 separator nonempty Id "," ;
 
 
-
 Tbool.    Type ::= "bool";
 Tdouble.  Type ::= "double";
 Tint.     Type ::= "int";
@@ -37,10 +36,7 @@ SBlock. Stm  ::= "{"[Stm]"}" ;
 SIfElse. Stm ::= "if" "("Exp")" Stm "else" Stm;
 
 
-
 ADecl. Arg ::= Type Id;
-
-
 
 comment "//" ;
 comment "/*" "*/";
