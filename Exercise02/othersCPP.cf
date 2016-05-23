@@ -73,13 +73,13 @@ SStr.		Stm ::= "struct" Id "{" [Dec] "}" ";" ;
 
 -- Expressions
 
-ETrue.		Exp16 ::= "true" ;
-EFalse.		Exp16 ::= "false" ;
-EInt.		Exp16 ::= Integer ;
-EDouble.	Exp16 ::= Double ;
-EChar.		Exp16 ::= Char ;
-EString.	Exp16 ::= [String] ;
-EId.		Exp16 ::= QCOTType;
+ETrue.		 Exp16 ::= "true" ;
+EFalse.		 Exp16 ::= "false" ;
+EInt.		   Exp16 ::= Integer ;
+EDouble.	 Exp16 ::= Double ;
+EChar.		 Exp16 ::= Char ;
+EString.	 Exp16 ::= [String] ;
+EId.		   Exp16 ::= QCOTType;
 
 EInd.		Exp15 ::= Exp16 "[" Exp "]" ;
 ECall.		Exp15 ::= Exp16 "(" [Exp] ")" ;

@@ -3,33 +3,42 @@
 PDefs.              Program ::= [Def] ;
 
 
+-- Comments -------------------------------------------------------------------------------
+
+comment "//" ;
+comment "/*" "*/";
+comment "#" ;
+
+
+
 -- Definitions -------------------------------------------------------------------------------
 
-DFunc.            Def ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DFunc.                Def           ::= Type Id "(" [FunctionArg] ")" DFunctionBody ;
+DFuncInline.          Def           ::= "inline" Type Id "(" [FunctionArg] ")" DFunctionBody ;
+
+DFunctionBodyCont.    DFunctionBody ::= "{" [Stm] "}" ;
+DFunctionBodyNothing. DFunctionBody ::= ";" ;
+
+ArgDefNorm.               FunctionArg ::= Type;
+ArgDefId.                 FunctionArg ::= Type Id;
+ArgDefIdDefault.          FunctionArg ::= Type Id "=" Exp ;
+ArgDefNormConst.          FunctionArg ::= "const" Type;
+ArgDefIdConst.            FunctionArg ::= "const" Type Id;
+ArgDefIdDefaultConst.     FunctionArg ::= "const" Type Id "=" Exp ;
+
+
+
+
+
 DTypedef.         Def ::= "typedef" Type Id ";" ;
-DStruct.          Def ::= "struct" Id "{" [Stm] "}" ";" ;
+DStruct.          Def ::= "struct" Id "{" [VarInit] "}" ";" ;
 DVar.             Def ::= VarInit ;
 DUsing.           Def ::= "using" QCOTType ";" ;     
 
-terminator          Def "" ;
-terminator          Stm "" ;
-separator           Arg "," ;
-separator nonempty  Id "," ;
 
 -- BasicTypes -------------------------------------------------------------------------------
 
-Tbool.              BasicType ::= "bool" ;
-Tdouble.            BasicType ::= "double" ;
-Tint.               BasicType ::= "int" ;
-Tstring.            BasicType ::= "string" ;
-Tvoid.              BasicType ::= "void" ;
-Tchar.              BasicType ::= "char" ;
-Tshort.             BasicType ::= "short" ;
-Tlong.              BasicType ::= "long" ;
-Tfloat.             BasicType ::= "float" ;
-Tsigned.            BasicType ::= "signed" ;
-Tunsigned.          BasicType ::= "unsigned" ;
-
+rules BasicType ::= "bool" | "double" | "int" | "char" | "void" | "char" | "short" | "long" | "float" | "signed" | "unsigned" ;
 DefType.            Type ::= BasicType RefOperators ;
 DefQCOTType.        Type ::= QCOTType RefOperators ;
 
@@ -40,20 +49,14 @@ PostfixNothing.     RefOperators::= ;
 PostfixList.        RefOperators ::= RefOperator RefOperators;
 
 
-separator           Type "," ;
-
-
-
 -- Qualified constants and template instantiations -------------------------------------------------------------------------------
-
--- separator nonempty  QCOT "::" ;
 
 QCOTId.             QCOT ::= Id ;
 
 QCOTTemplate.       QCOT ::= Id "<" [Type] ">" ;
 
 QCOTEnd.  QCOTType ::= QCOT ;
-QCOTList. QCOTType ::= QCOT "::" Type ;
+QCOTList. QCOTType ::= QCOT "::" QCOTType ;
 -- todo this creates 2 more shift reduce conflicts adding Type instead of QCOTType in the Rule QCOTList
 
 
@@ -64,9 +67,9 @@ SExp.                 Stm ::= Exp ";" ;
 SVarInit.             Stm ::= VarInit ;
 
 
-SDecl.              VarInit ::= Type Id ";" ;
-SDecls.             VarInit ::= Type Id "," [Id] ";" ;
+SDecl.              VarInit ::= Type [Id] ";" ;
 SInit.              VarInit ::= Type Id "=" Exp ";" ;
+SInitConst.         VarInit ::= "const" Type Id "=" Exp ";" ;
 
 
 SReturn.            Stm ::= "return" Exp ";" ;
@@ -74,54 +77,42 @@ SReturnVoid.        Stm ::= "return" ";" ;
 
 SWhile.             Stm ::= "while" "(" Exp ")" Stm ;
 SDo.                Stm ::= "do" Stm "while" "(" Exp ")" ";" ;
-SFor.               Stm ::= "for" "(" Stm Exp ";" Exp ")" Stm ;
+SFor.               Stm ::= "for" "(" VarInit Exp ";" Exp ")" Stm ;
 
 SIf.                Stm ::= "if" "(" Exp ")" Stm ;
 SIfElse.            Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 
 SBlock.             Stm ::= "{" [Stm] "}";
 
-SStruct.            Stm ::= "struct" Id "{" [Stm] "}" ";" ;
+SStruct.            Stm ::= "struct" Id "{" [VarInit] "}" ";" ;
 STypedef.           Stm ::= "typedef" Type Id ";" ;
-
-ADecl.              Arg ::= Type Id ;
-
-
--- Comments -------------------------------------------------------------------------------
-
-comment "//" ;
-comment "/*" "*/";
-comment "#" ;
 
 
 -- Expressions -------------------------------------------------------------------------------
 
 EInt.               Exp16 ::= Integer ;
 EDouble.            Exp16 ::= Double ;
-EString.            Exp16 ::= String ;
+EString.            Exp16 ::= [String] ;
 EChar.              Exp16 ::= Char ;
 ETrue.              Exp16 ::= "true" ;
 EFalse.             Exp16 ::= "false" ;
---EId.            Exp16 ::= Id ;
 EQCOT.              Exp16 ::= QCOTType ;
 
 ECall.              Exp15 ::= Id "(" [Exp] ")" ;
-
-EIndex.             Exp15 ::= Id "::" Id ;
-EQuali.             Exp15 ::= Id "[" Id "]" ;
+EQuali.             Exp15 ::= Id "[" Exp "]" ;
 
 EPIncr.             Exp14 ::= Exp15 "++" ;
 EPDecr.             Exp14 ::= Exp15 "--" ;
 EDeref.             Exp14 ::= "*" Id ;
 
-EDot.               Exp14 ::= Id "." Id ;
-EArrow.             Exp14 ::= Id "->" Id ;
+EDot.               Exp14 ::= Exp14 "." Exp15 ;
+EArrow.             Exp14 ::= Exp14 "->" Exp15 ;
 
 EIncr.              Exp13 ::= "++" Exp14 ;
 EDecr.              Exp13 ::= "--" Exp14 ;
-ELogNeg.            Exp13 ::= "!" Exp16 ;
+ELogNeg.            Exp13 ::= "!" Exp14 ;
 
---ECast.              Exp13 ::= "(" Type ")" Exp14 ;
+ECast.              Exp13 ::= "(" BasicType ")" Exp14 ;
 
 ENeg.               Exp13 ::= "-" Exp14 ;
 
@@ -147,27 +138,42 @@ EAnd.               Exp4  ::= Exp4 "&&" Exp5 ;
 
 EOr.                Exp3  ::= Exp3 "||" Exp4 ;
 
-EAss.               Exp2  ::= Exp3 "=" Exp2 ;
-EAssAdd.            Exp2  ::= Exp3 "+=" Exp2 ;
-EAssSub.            Exp2  ::= Exp3 "-=" Exp2 ;
-EAssMul.            Exp2  ::= Exp3 "*=" Exp2 ;
-EAssDiv.            Exp2  ::= Exp3 "/=" Exp2 ;
-EAssMod.            Exp2  ::= Exp3 "%=" Exp2 ;
-EAssLeft.           Exp2  ::= Exp3 "<<=" Exp2 ;
-EAssRight.          Exp2  ::= Exp3 ">>=" Exp2 ;
-EAssAnd.            Exp2  ::= Exp3 "&=" Exp2 ;
-EAssXor.            Exp2  ::= Exp3 "^=" Exp2 ;
-EAssOr.             Exp2  ::= Exp3 "|=" Exp2 ;
-
+EAssOp.             Exp2  ::= Exp3 AssOp Exp2 ;
 ECond.              Exp2  ::= Exp3 "?" Exp2 ":" Exp2 ;
 
 EExcep.             Exp1  ::= "throw" Exp2 ;
 
 coercions           Exp 16 ;
+
+
+-- Assignment operators -------------------------------------------------------------------------------
+
+OpAss.        AssOp ::= "="  ;
+OpAssAdd.     AssOp ::= "+=" ;
+OpAssSub.     AssOp ::= "-=" ;
+OpAssMul.     AssOp ::= "*=" ;
+OpAssDiv.     AssOp ::= "/=" ;
+OpAssMod.     AssOp ::= "%=" ;
+OpAssLeft.    AssOp ::= "<<=" ;
+OpAssRight.   AssOp ::= ">>=" ;
+OpAssAnd.     AssOp ::= "&=" ;
+OpAssXor.     AssOp ::= "^=" ;
+OpAssOr.      AssOp ::= "|=" ;
+
+
+
+-- terminator and Separators  -------------------------------------------------------------------------------
+
+terminator          Def "" ;
+terminator          Stm "" ;
+separator           FunctionArg "," ;
+separator nonempty  Id "," ;
+separator           VarInit "" ;
+separator nonempty  Type "," ;
 separator           Exp "," ;
+separator nonempty  String "" ;
 
-token               Id (letter (letter | digit | '_')*) ;
-
+token Id (letter (letter | digit | '_')*) ;
 
 
 
