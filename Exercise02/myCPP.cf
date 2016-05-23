@@ -90,13 +90,7 @@ STypedef.           Stm ::= "typedef" Type Id ";" ;
 
 -- Expressions -------------------------------------------------------------------------------
 
-EInt.               Exp16 ::= Integer ;
-EDouble.            Exp16 ::= Double ;
-EString.            Exp16 ::= [String] ;
-EChar.              Exp16 ::= Char ;
-ETrue.              Exp16 ::= "true" ;
-EFalse.             Exp16 ::= "false" ;
-EQCOT.              Exp16 ::= QCOTType ;
+rules               Exp16 ::= Integer | Double | [String] | Char | "true" | "false" | QCOTType ;
 
 ECall.              Exp15 ::= Id "(" [Exp] ")" ;
 EQuali.             Exp15 ::= Id "[" Exp "]" ;
