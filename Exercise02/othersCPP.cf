@@ -73,13 +73,13 @@ SStr.		Stm ::= "struct" Id "{" [Dec] "}" ";" ;
 
 -- Expressions
 
-ETrue.		 Exp16 ::= "true" ;
-EFalse.		 Exp16 ::= "false" ;
-EInt.		   Exp16 ::= Integer ;
-EDouble.	 Exp16 ::= Double ;
-EChar.		 Exp16 ::= Char ;
-EString.	 Exp16 ::= [String] ;
-EId.		   Exp16 ::= QCOTType;
+ETrue.		Exp16 ::= "true" ;
+EFalse.		Exp16 ::= "false" ;
+EInt.		Exp16 ::= Integer ;
+EDouble.	Exp16 ::= Double ;
+EChar.		Exp16 ::= Char ;
+EString.	Exp16 ::= [String] ;
+EId.		Exp16 ::= QCOTType;
 
 EInd.		Exp15 ::= Exp16 "[" Exp "]" ;
 ECall.		Exp15 ::= Exp16 "(" [Exp] ")" ;
@@ -89,7 +89,7 @@ internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
 EStrP.		Exp14 ::= Exp14 "." Exp15 ;
 EStrA.		Exp14 ::= Exp14 "->" Exp15 ;
 EPIncr.		Exp14 ::= Exp15 "++" ;
-EPDecr.		Exp14 ::= Exp15 "--" ;
+EPDecr.		Exp14 ::=Tc Exp15 "--" ;
 EUnaryOp.	Exp14 ::= UnaryOp Exp15;
 
 EIncr.		Exp13 ::= "++" Exp14 ;
@@ -100,20 +100,28 @@ ECast.		Exp13 ::= "(" BasicType ")" Exp14 ;
 ETimes.		Exp12 ::= Exp12 "*"  Exp13 ;
 EDiv.		Exp12 ::= Exp12 "/"  Exp13 ;
 ERem.		Exp12 ::= Exp12 "%"  Exp13 ;
+
 EPlus.		Exp11 ::= Exp11 "+"  Exp12 ;
 EMinus.		Exp11 ::= Exp11 "-"  Exp12 ;
+
 ELShift.	Exp10 ::= Exp10 "<<" Exp11 ;
 ERShift.	Exp10 ::= Exp10 ">>" Exp11 ;
+
 ELt.		Exp9  ::= Exp9  "<"  Exp10 ;
 EGt.		Exp9  ::= Exp9  ">"  Exp10 ;
 EGtEq.		Exp9  ::= Exp9 ">="  Exp10 ;
 ELtEq.		Exp9  ::= Exp9 "<="  Exp10 ;
+
 EEq.		Exp8  ::= Exp8  "==" Exp9 ;
 ENEq.		Exp8  ::= Exp8  "!=" Exp9 ;
+
 EAnd.		Exp4  ::= Exp4  "&&" Exp5 ;
+
 EOr.		Exp3  ::= Exp3  "||" Exp4 ;
+
 EAss.		Exp2  ::= Exp3  AssOp Exp2 ;
 ECond.		Exp2  ::= Exp3  "?" Exp2 ":" Exp2;
+
 EExcep.		Exp1  ::= "throw" Exp2 ;
 
 AssOpNorm.	AssOp ::= "=" ;
@@ -164,9 +172,6 @@ TPostRef.	TypePostfix ::= "&" ;
 
 TPostfixsEnd.	TypePostfixs ::= ;
 TPostfixsList.	TypePostfixs ::= TypePostfix TypePostfixs ;
-
-
--- Literals
 
 
 -- Identifiers
