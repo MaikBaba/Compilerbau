@@ -3,15 +3,11 @@
 /* You might want to change the above name. */
 
 #include "Absyn.H"
-#include "Env.H"
 
 
 class Skeleton : public Visitor
 {
 public:
-  
-  Type* typecheck(Visitable* v);
-
   void visitProgram(Program* p);
   void visitDef(Def* p);
   void visitArg(Arg* p);
@@ -71,9 +67,6 @@ public:
   void visit"Double"("Double" x);
   void visit"String"("String" x);
   void visit"Ident"("Ident" x);
-
-private:
-  Env _env;
 
 };
 
