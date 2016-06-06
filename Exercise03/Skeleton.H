@@ -1,12 +1,12 @@
-#ifndef SKELETON_HEADER
-#define SKELETON_HEADER
+#ifndef TYPECHECKER_HEADER
+#define TYPECHECKER_HEADER
 /* You might want to change the above name. */
 
 #include "Absyn.H"
 #include "Env.H"
 
 
-class Skeleton : public Visitor
+class Typechecker : public Visitor
 {
 public:
   
