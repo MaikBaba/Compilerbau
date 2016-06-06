@@ -4,9 +4,7 @@
    List->accept() does NOT traverse the list. This allows different
    algorithms to use context information differently. */
 
-#include "Skeleton.H"
-
-
+#include "TypeChecker.H"
 
 void Skeleton::visitProgram(Program* t) {} //abstract class
 void Skeleton::visitDef(Def* t) {} //abstract class
