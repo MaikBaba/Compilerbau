@@ -38,7 +38,7 @@ DUsing.           Def ::= "using" QCOTType ";" ;
 
 -- BasicTypes -------------------------------------------------------------------------------
 
-rules BasicType ::= "bool" | "double" | "int" | "char" | "void" | "char" | "short" | "long" | "float" | "signed" | "unsigned" ;
+rules BasicType ::= "bool" | "double" | "int" | "void" | "char" | "short" | "long" | "float" | "signed" | "unsigned" ;
 DefType.            Type ::= BasicType RefOperators ;
 DefQCOTType.        Type ::= QCOTType RefOperators ;
 
