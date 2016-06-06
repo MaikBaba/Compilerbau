@@ -1,6 +1,6 @@
 #include <list>
 
-#include "Type.H
+#include "Type.H"
 
 class FunType {
 public:

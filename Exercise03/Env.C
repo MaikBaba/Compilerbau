@@ -1,4 +1,4 @@
-#include "Env.C"
+#include "Env.H"
 
 Type Env::lookupVar(String id) {
         std::map<std::string,Type>::iterator it;
