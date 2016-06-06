@@ -1,3 +1,4 @@
+
 /*** BNFC-Generated Visitor Design Pattern Skeleton. ***/
 /* This implements the common visitor design pattern.
    Note that this method uses Visitor-traversal of lists, so
@@ -429,6 +430,5 @@ void Skeleton::visitIdent(Ident x)
 {
   /* Code for Ident Goes Here */
 }
-
 
 
