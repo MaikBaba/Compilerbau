@@ -7,6 +7,14 @@
 
 #include "TypeChecker.H"
 
+*/ Eigene Definitionen /*
+    Type* TypeChecker::typecheck(Visitable* v) {
+      v−>accept ( this );
+      return ty_ ;
+    }
+
+
+
 void TypeChecker::visitProgram(Program* t) {} //abstract class
 void TypeChecker::visitDef(Def* t) {} //abstract class
 void TypeChecker::visitArg(Arg* t) {} //abstract class
