@@ -1,9 +1,11 @@
+#import "Env.H"
 
 class TypeChecker
 {
 public:
-        Type infer(Env T, Exp e);
         Type* typecheck(Visitable* v);
+       
+        Type infer(Env T, Exp e);
         Type lookup(Ident x, Env T);
         FunType lookup(Ident f, Env T);
         Env extend(Env T, Ident x, Type t);
@@ -78,5 +80,6 @@ public:
 
 private:
         Env _env;
+        Type* _ty;
 
 };
