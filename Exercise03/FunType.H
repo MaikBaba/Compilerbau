@@ -3,8 +3,7 @@
 #include "Type.H"
 
 class FunType {
-public:
-        LinkedList<Type> args;
-        Type val;
-        
+  public:
+          LinkedList<Type> args;
+          Type val;    
 }
