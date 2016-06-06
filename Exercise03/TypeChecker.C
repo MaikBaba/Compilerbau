@@ -7,9 +7,9 @@
 
 #include "TypeChecker.H"
 
-*/ Eigene Definitionen /*
+/* Eigene Definitionen */
     Type* TypeChecker::typecheck(Visitable* v) {
-      v−>accept ( this );
+      v−>accept (this);
       return ty_ ;
     }
 
