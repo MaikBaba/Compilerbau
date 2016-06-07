@@ -1,18 +1,18 @@
 #include "Env.H"
 
 Type Env::lookupVar(String id) {
-        std::map<std::string,Type>::iterator it;
+        std::unordered_map<std::string,Type>::iterator it;
 
         it = contexts.back.find(id);
-        if (it == signatur.end()) {
+        if (it == signatures.end()) {
                 //ERROR no var with this name exists
         }
         return it->second;
 }
 
 FunType Env::lookupFun(String id) {
-        std::map<std::string,FunType>::iterator it;
-        it = signatur.find(id);
+        std::unordered_map<std::string,FunType>::iterator it;
+        it = signatures.find(id);
         if (it == signatur.end()) {
                 //ERROR no fun with this name exists
         }
@@ -24,5 +24,9 @@ void Env::updateVar(String id, Type ty) {
         ret = contexts.insert(std::pair<std::string, Type>(id, ty));
         if (ret.second == false) {
                 //ERROR var with id already exist
+        }
+
+void Env::updateFun(String id, Type ty) {
+        // TODO
         }
 }

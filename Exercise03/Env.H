@@ -14,6 +14,6 @@ public:
   Type lookupVar(String id);
   FunType lookupFun(String id);
   void updateVar(String id, Type ty); 
-  void updateFun(String id, FunType f);
+  void updateFun(String id, FunType* f);
 
 }
