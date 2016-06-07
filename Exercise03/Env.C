@@ -1,4 +1,5 @@
 #include "Env.H"
+#include "TypeException.H"
 
 
 using namespace std;
