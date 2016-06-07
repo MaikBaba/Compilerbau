@@ -20,7 +20,7 @@ FunType Env::lookupFun(String id) {
 }
 
 void Env::updateVar(String id, Type ty) {
-        std::pair<std::map<std::string, Type>::iterator,bool> ret;
+        std::pair<std::map<std::string, Type>::iterator, bool> ret;
         ret = contexts.insert(std::pair<std::string, Type>(id, ty));
         if (ret.second == false) {
                 //ERROR var with id already exist
