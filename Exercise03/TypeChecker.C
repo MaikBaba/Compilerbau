@@ -11,7 +11,7 @@
 
     Type* TypeChecker::typecheck(Visitable* v) {
       v−>accept (this);
-      return ty_ ;
+      return _ty ;
     }
 */
 
