@@ -7,8 +7,8 @@ using namespace std;
 
 class TypeException: public exception{
 public:
-  XOutOfBounds(const char* msg);
-  ~XOutOfBounds() throw();
+  TypeException(const char* msg);
+  ~TypeException() throw();
 
   const char* what() throw();
 
