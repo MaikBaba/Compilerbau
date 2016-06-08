@@ -12,10 +12,11 @@ public:
         ~TypeChecker();
         Type* typecheck(Visitable* v);
 
-        void check(Env T, Exp e, Type t);
-        void check(Env T, Stms s);
-        void check(Env T, Def d);
-        void check(Program p);
+        //TODO: implement and uncomment
+//        void check(Env T, Exp e, Type t);
+//        void check(Env T, Stms s);
+//        void check(Env T, Def d);
+//        void check(Program p);
 
         void visitProgram(Program* p);
         void visitDef(Def* p);

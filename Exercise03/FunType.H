@@ -4,6 +4,6 @@
 
 class FunType {
   public:
-          LinkedList<Type> args;
-          Type val;    
-}
+          std::list<Type*> args;
+          int val;
+};
