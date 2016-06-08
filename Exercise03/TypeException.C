@@ -1,6 +1,6 @@
-#include "TypeException.h"
+#include "TypeException.H"
 
-#include "string"
+#include <string>
 
 
 TypeException::TypeException(const char* msg){
@@ -10,7 +10,6 @@ TypeException::TypeException(const char* msg){
 TypeException::~TypeException() throw(){
 }
 
-const char* TypeException::what() throw(){
-  const char* return_msg = m_msg.c_str();
-  return return_msg;
+string TypeException::what() throw(){
+  return m_msg;
 }

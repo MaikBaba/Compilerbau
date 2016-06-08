@@ -1,9 +1,13 @@
 #include <list>
+#include <string>
 
-#include "Type.H"
+#include "BasicType.H"
+
+typedef std::string Id;
 
 class FunType {
   public:
-          LinkedList<Type> args;
-          Type val;    
-}
+    Id fun_id;
+	std::list<BasicType*> fun_args;
+    BasicType* fun_type;
+};

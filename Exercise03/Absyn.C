@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "Absyn.H"
+#include "BasicType.H"
 
 /********************   PDefs    ********************/
 PDefs::PDefs(ListDef *p1)

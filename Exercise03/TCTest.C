@@ -4,7 +4,7 @@
 /* pretty-print the result.                                                 */
 /*                                                                          */
 /****************************************************************************/
-#include <stdio.h>
+#include <iostream>
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
@@ -14,7 +14,7 @@
 int main(int argc, char ** argv)
 {
   FILE *input;
-  if (argc > 1) 
+  if (argc > 1)
   {
     input = fopen(argv[1], "r");
     if (!input)
@@ -30,20 +30,22 @@ int main(int argc, char ** argv)
   {
     try {
       new TypeChecker().typecheck(parse_tree);
-      } catch (TypeException e) {
+      } catch (TypeException &e) {
           printf("TYPE ERROR");
-          System.err.println(e.toString());
-          System.exit(1);
-      } catch (IOException e) {
-          System.err.println(e.toString());
-          System.exit(1);
-      } catch (Throwable e) {
-          printf("SYNTAX ERROR");
-          printf ("At line " + String.valueOf(l.line_num())
-       + ", near \"" + l.buff() + "\" :");
-          printf("     " + e.getMessage());
-          System.exit(1);
-    }
+          std::cout<< e.what();
+          cout<< endl;
+          return 1;
+      }
+//      catch (IOException e) {
+//        System.err.println(e.toString());
+//          System.exit(1);
+//      } catch (Throwable e) {
+//          printf("SYNTAX ERROR");
+//          printf ("At line " + String.valueOf(l.line_num())
+//       + ", near \"" + l.buff() + "\" :");
+//          printf("     " + e.getMessage());
+//          System.exit(1);
+//    }
     printf("\nParse Succesful!\n");
     printf("\n[Abstract Syntax]\n");
     ShowAbsyn *s = new ShowAbsyn();
@@ -59,4 +61,5 @@ int main(int argc, char ** argv)
   }
   return 1;
 }
+
 

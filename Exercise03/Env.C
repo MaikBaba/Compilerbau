@@ -1,40 +1,43 @@
 #include "Env.H"
 #include "TypeException.H"
-
+#include "Absyn.H"
 
 using namespace std;
 
-Type Env::lookupVar(String id) {
-  unordered_map<string, Type>::iterator it;
+BasicType Env::lookupVar(string id){
+  unordered_map<string,BasicType>::iterator it;
 
-  it = m_context.back.find(id);
+  // Find variable at the last element ("top of the stack")
+  it = m_context.back().find(id);
   if (it == m_context.end()) {
     //ERROR no var with this name exists
   }
   return it->second;
 }
 
-FunType Env::lookupFun(String id) {
+BasicType Env::lookupFun(FunType* func){
   unordered_map<string, FunType>::iterator it;
-  it = m_fun_context.find(id);
+  it = m_fun_context.find(func->fun_id);
   if (it == m_fun_context.end()) {
     //ERROR no fun with this name exists
   }
-  return it->second;
+  return it->second.fun_type;
 }
 
-void Env::updateVar(String id, Type ty) {
-  pair<map<string, Type>::iterator, bool> ret;
-  ret = m_context.insert(pair<string, Type>(id, ty));
+void Env::updateVar(string id, BasicType* ty) {
+  pair<unordered_map<string, BasicType&>::iterator, bool> ret;
+  // insert to last list item ("top of stack") a new pair (symbol table)
+  ret = m_context.back().insert(pair<string, BasicType&>(id, ty));
   if (ret.second == false) {
     //ERROR var with id already exist
   }
 }
 
-void Env::updateFun(String id, Type ty) {
-    pair<map<string, Type>::iterator, bool> ret;
-    ret = signatures.insert(std::pair<string, Type>(id, ty));
+
+void Env::updateFun(string id, FunType* ty) {
+    pair<map<string, FunType&>::iterator, bool> ret;
+    ret = m_fun_context.insert(std::pair<string, FunType&>(id, ty));
     if (ret.second == false) {
-            //ERROR fun with id already exist
+      //ERROR fun with id already exist
     }
 }
