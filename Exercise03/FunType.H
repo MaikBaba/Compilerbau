@@ -5,9 +5,11 @@
 
 #include "BasicType.H"
 
+using namespace std;
+
 class FunType {
   public:
     Id fun_id;
-	std::list<BasicType*> fun_args;
-    BasicType* fun_type;
+	list<Type*> fun_args;
+    Type* fun_type;
 };

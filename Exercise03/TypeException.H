@@ -3,9 +3,10 @@
 
 #include <exception>
 #include <string>
+
 using namespace std;
 
-class TypeException: public exception{
+class TypeException : public exception{
 public:
   TypeException(string msg);
   ~TypeException() throw();

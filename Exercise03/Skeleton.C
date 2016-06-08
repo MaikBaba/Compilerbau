@@ -431,6 +431,3 @@ void Skeleton::visitIdent(Ident x)
 {
   /* Code for Ident Goes Here */
 }
-
-
-

@@ -1,9 +1,7 @@
 #include "TypeException.H"
 
-#include <string>
 
-
-TypeException::TypeException(const char* msg){
+TypeException::TypeException(string msg){
   m_msg=msg;
 }
 

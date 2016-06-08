@@ -15,25 +15,25 @@ BasicType Env::lookupVar(Id id){
 
 FunType Env::lookupFun(Id id){
   map<Id, FunType>::iterator it;
-  it = m_fun_context.find(func->fun_id);
+  it = m_fun_context.find(id);
   if (it == m_fun_context.end()) {
     //ERROR no fun with this name exists
   }
   return it->second.fun_type;
 }
 
-void Env::updateVar(Id id, BasicType* ty) {
-  pair<map<Id, BasicType&>::iterator, bool> ret;
+void Env::updateVar(Id id, Type* ty) {
+  pair<map<Id, Type*>::iterator, bool> ret;
   // insert to last list item ("top of stack") a new pair (symbol table)
-  ret = m_context.back().insert(pair<Id, BasicType&>(id, ty));
+  ret = m_context.back().insert(pair<Id, Type*>(id, ty));
   if (ret.second == false) {
     //ERROR var with id already exist
   }
 }
 
 void Env::updateFun(Id id, FunType* ty) {
-    pair<map<Id, FunType&>::iterator, bool> ret;
-    ret = m_fun_context.insert(std::pair<Id, FunType&>(id, ty));
+    pair<map<Id, FunType*>::iterator, bool> ret;
+    ret = m_fun_context.insert(std::pair<Id, FunType*>(id, ty));
     if (ret.second == false) {
       //ERROR fun with id already exist
     }

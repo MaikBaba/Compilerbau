@@ -4,21 +4,22 @@
 #include "Absyn.H"
 
 #include "Env.H"
-#include "BasicType.H"
 
 class TypeChecker : public Visitor
 {
 public:
 
-        ~TypeChecker();
-        BasicType typecheck(Visitable* v);
+    ~TypeChecker();
+    Type* typecheck(Visitable* v);
 
-
-	BasicType infer(Env T, Exp e);
+    Type lookup (Ident x, Env T);
+    FunType lookup(Ident f, Env T);
 	Env extend(Env T, Ident x, Type t);
-	Env extend(Env, Def d);
+	Env extend(Env T, Def d);
 	Env newBlock(Env T);
 	Env emptEnv();
+
+	Type infer(Env T, Exp e);
 
 	void check(Env T, Exp e, Type t);
 	void check(Env T, Stms s);
@@ -87,6 +88,6 @@ public:
 
 private:
         Env env_;
-        BasicType ty_;
+        Type* ty_;
 
 };

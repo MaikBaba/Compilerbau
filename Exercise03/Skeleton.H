@@ -1,17 +1,13 @@
-#ifndef TYPECHECKER_HEADER
-#define TYPECHECKER_HEADER
+#ifndef SKELETON_HEADER
+#define SKELETON_HEADER
 /* You might want to change the above name. */
 
 #include "Absyn.H"
-#include "Env.H"
 
 
-class Typechecker : public Visitor
+class Skeleton : public Visitor
 {
 public:
-  
-  Type* typecheck(Visitable* v);
-
   void visitProgram(Program* p);
   void visitDef(Def* p);
   void visitArg(Arg* p);
@@ -71,9 +67,6 @@ public:
   void visit"Double"("Double" x);
   void visit"String"("String" x);
   void visit"Ident"("Ident" x);
-
-private:
-  Env _env;
 
 };
 

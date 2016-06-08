@@ -16,10 +16,10 @@ public:
 	
   BasicType lookupVar(Id id);
   FunType lookupFun(Id id);
-  void updateVar(Id id, BasicType* ty);
+  void updateVar(Id id, Type* ty);
   void updateFun(Id id, FunType* func);
 
 private:
-  map<Id, FunType> m_fun_context;
-  list<map<Id, BasicType> > m_context;
+  map<Id, FunType*> m_fun_context;
+  list<map<Id, Type*> > m_context;
 };

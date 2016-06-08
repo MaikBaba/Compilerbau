@@ -27,7 +27,7 @@ Absyn.o: Absyn.C Absyn.H
 	${CC} ${CCFLAGS} -c Absyn.C
 
 Lexer.C: CPP.l
-	${FLEX} -oLexer.C CPP.l
+	${FLEX} -o Lexer.C CPP.l
 
 Parser.C: CPP.y
 	${BISON} CPP.y -o Parser.C
