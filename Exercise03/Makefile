@@ -44,6 +44,6 @@ Printer.o: Printer.C Printer.H Absyn.H
 TypeChecker.o: TypeChecker.C TypeChecker.H Absyn.H Env.H FunType.H
 	${CC} ${CCFLAGS} -c TypeChecker.C
 
-TestTypeChecker.o: TCTest.C Parser.H Printer.H Absyn.H TypeChecker.H
+TestTypeChecker.o: TCTest.C Parser.H Printer.H Absyn.H TypeChecker.H TypeException.H
 	${CC} ${CCFLAGS} -c TCTest.C
 

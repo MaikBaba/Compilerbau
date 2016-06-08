@@ -1,8 +1,7 @@
 #include "TypeException.H"
 
-
 TypeException::TypeException(string msg){
-  m_msg=msg;
+  m_msg = msg;
 }
 
 TypeException::~TypeException() throw(){
