@@ -173,17 +173,15 @@ void TypeChecker::visitEApp(EApp *eapp)
   // visitId(eapp->id_);
   // eapp->listexp_->accept(this);
 
-  std::vector<Type*>* func_args = new std::vector<Type*>();
+  FunType* fun = env_.lookupFun(eapp->id_);
+
+  std::vector<Type*>* fun_args2 = new std::vector<Type*>();
 
   for (ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it) {
-    typecheck(*it);
-    func_args->push_back(ty_);
+    fun_args2->push_back(typecheck(*it));
   }
 
-  ty_ = env_.lookupFun(eapp->id_, func_args);
-
-  delete (func_args);
-
+  //Jetzt die Signatur vergleichen falls nötig;
 }
 
 void TypeChecker::visitEPIncr(EPIncr *epincr)
