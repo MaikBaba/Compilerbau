@@ -1,5 +1,5 @@
-#ifndef XOUTOFBOUNDS_H_
-#define XOUTOFBOUNDS_H_
+#ifndef TYPEEXCEPTION_H_
+#define TYPEEXCEPTION_H_
 
 #include <exception>
 #include <string>
