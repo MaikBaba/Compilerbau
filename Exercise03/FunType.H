@@ -5,5 +5,5 @@
 class FunType {
   public:
           std::list<Type*> args;
-          int val;
+          Type* ty_;
 };
