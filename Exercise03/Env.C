@@ -27,6 +27,9 @@ void Env::updateVar(String id, Type ty) {
         }
 
 void Env::updateFun(String id, Type ty) {
-        // TODO
-        }
+    std::pair<std::map<std::string, Type>::iterator,bool> ret;
+    ret = signatures.insert(std::pair<std::string, Type>(id, ty));
+    if (ret.second == false) {
+            //ERROR fun with id already exist
+    }
 }

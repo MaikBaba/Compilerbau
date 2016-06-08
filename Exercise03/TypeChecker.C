@@ -7,6 +7,8 @@
 
 #include "TypeChecker.H"
 
+TypeChecker::~TypeChecker() {}
+
 /* Eigene Definitionen */
     Type* TypeChecker::typecheck(Visitable* v) {
       v−>accept (this);
@@ -74,7 +76,7 @@ void TypeChecker::visitSInit(SInit *sinit)
   sinit->type_->accept(this);
   visitId(sinit->id_);
   sinit->exp_->accept(this);
-
+  env_.updateVar(sinit−>id_, sinit−>type_); // id_ , type_
 }
 
 void TypeChecker::visitSReturn(SReturn *sreturn)
@@ -210,8 +212,9 @@ void TypeChecker::visitETimes(ETimes *etimes)
 {
   /* Code For ETimes Goes Here */
 
-  etimes->exp_1->accept(this);
-  etimes->exp_2->accept(this);
+  //etimes->exp_1->accept(this);
+  //etimes->exp_2->accept(this);
+  val = eval(etimes->exp_1) * eval(etimes->exp_2);
 
 }
 
@@ -219,8 +222,9 @@ void TypeChecker::visitEDiv(EDiv *ediv)
 {
   /* Code For EDiv Goes Here */
 
-  ediv->exp_1->accept(this);
-  ediv->exp_2->accept(this);
+  //ediv->exp_1->accept(this);
+  //ediv->exp_2->accept(this);
+  val = eval(ediv->exp_1) / eval(ediv->exp_2);
 
 }
 
@@ -228,17 +232,18 @@ void TypeChecker::visitEPlus(EPlus *eplus)
 {
   /* Code For EPlus Goes Here */
 
-  eplus->exp_1->accept(this);
-  eplus->exp_2->accept(this);
-
+  //eplus->exp_1->accept(this);
+  //eplus->exp_2->accept(this);
+  val = eval(eplus->exp_1) + eval(eplus->exp_2);
 }
 
 void TypeChecker::visitEMinus(EMinus *eminus)
 {
   /* Code For EMinus Goes Here */
 
-  eminus->exp_1->accept(this);
-  eminus->exp_2->accept(this);
+  //eminus->exp_1->accept(this);
+  //eminus->exp_2->accept(this);
+  val = eval(eminus->exp_1) - eval(eminus->exp_2);
 
 }
 
@@ -246,8 +251,9 @@ void TypeChecker::visitELt(ELt *elt)
 {
   /* Code For ELt Goes Here */
 
-  elt->exp_1->accept(this);
-  elt->exp_2->accept(this);
+  //elt->exp_1->accept(this);
+  //elt->exp_2->accept(this);
+  val = eval(elt->exp_1) < eval(elt->exp_2);
 
 }
 
@@ -255,8 +261,9 @@ void TypeChecker::visitEGt(EGt *egt)
 {
   /* Code For EGt Goes Here */
 
-  egt->exp_1->accept(this);
-  egt->exp_2->accept(this);
+  //egt->exp_1->accept(this);
+  //egt->exp_2->accept(this);
+  val = eval(egt->exp_1) > eval(egt->exp_2);
 
 }
 
@@ -264,8 +271,9 @@ void TypeChecker::visitELtEq(ELtEq *elteq)
 {
   /* Code For ELtEq Goes Here */
 
-  elteq->exp_1->accept(this);
-  elteq->exp_2->accept(this);
+  //elteq->exp_1->accept(this);
+  //elteq->exp_2->accept(this);
+  val = eval(elteq->exp_1) <= eval(elteq->exp_2);
 
 }
 
@@ -273,8 +281,9 @@ void TypeChecker::visitEGtEq(EGtEq *egteq)
 {
   /* Code For EGtEq Goes Here */
 
-  egteq->exp_1->accept(this);
-  egteq->exp_2->accept(this);
+  //egteq->exp_1->accept(this);
+  //egteq->exp_2->accept(this);
+  val = eval(egteq->exp_1) >= eval(egteq->exp_2);
 
 }
 
@@ -282,8 +291,9 @@ void TypeChecker::visitEEq(EEq *eeq)
 {
   /* Code For EEq Goes Here */
 
-  eeq->exp_1->accept(this);
-  eeq->exp_2->accept(this);
+  //eeq->exp_1->accept(this);
+  //eeq->exp_2->accept(this);
+  val = eval(eeq->exp_1) == eval(eeq->exp_2);
 
 }
 
@@ -291,8 +301,9 @@ void TypeChecker::visitENEq(ENEq *eneq)
 {
   /* Code For ENEq Goes Here */
 
-  eneq->exp_1->accept(this);
-  eneq->exp_2->accept(this);
+  //eneq->exp_1->accept(this);
+  //eneq->exp_2->accept(this);
+  val = eval(eneq->exp_1) != eval(eneq->exp_2);
 
 }
 
@@ -300,17 +311,18 @@ void TypeChecker::visitEAnd(EAnd *eand)
 {
   /* Code For EAnd Goes Here */
 
-  eand->exp_1->accept(this);
-  eand->exp_2->accept(this);
-
+  //eand->exp_1->accept(this);
+  //eand->exp_2->accept(this);
+  val = eval(eand->exp_1) && eval(eand->exp_2);
 }
 
 void TypeChecker::visitEOr(EOr *eor)
 {
   /* Code For EOr Goes Here */
 
-  eor->exp_1->accept(this);
-  eor->exp_2->accept(this);
+  //eor->exp_1->accept(this);
+  //eor->exp_2->accept(this);
+  val = eval(eor->exp_1) || eval(eor->exp_2);
 
 }
 
@@ -412,6 +424,7 @@ void TypeChecker::visitListId(ListId* listid)
 void TypeChecker::visitId(Id x)
 {
   /* Code for Id Goes Here */
+	ty_ = env_.lookup(x);
 }
 
 void TypeChecker::visitInteger(Integer x)
