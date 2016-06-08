@@ -10,10 +10,11 @@
 TypeChecker::~TypeChecker() {}
 
 /* Eigene Definitionen */
-    Type* TypeChecker::typecheck(Visitable* v) {
-      v−>accept (this);
-      return ty_ ;
-    }
+
+Type* TypeChecker::typecheck(Visitable* v) {
+    v−>accept (this);
+    return _ty ;
+}
 
 
 
@@ -76,7 +77,8 @@ void TypeChecker::visitSInit(SInit *sinit)
   sinit->type_->accept(this);
   visitId(sinit->id_);
   sinit->exp_->accept(this);
-  env_.updateVar(sinit−>id_, sinit−>type_); // id_ , type_
+
+  env_.updateVar(sinit−>id_, sinit−>type_);
 }
 
 void TypeChecker::visitSReturn(SReturn *sreturn)
@@ -451,5 +453,3 @@ void TypeChecker::visitIdent(Ident x)
 {
   /* Code for Ident Goes Here */
 }
-
-

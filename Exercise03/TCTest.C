@@ -9,6 +9,7 @@
 #include "Printer.H"
 #include "Absyn.H"
 #include "TypeChecker.H"
+#include "TypeException.H"
 
 int main(int argc, char ** argv)
 {

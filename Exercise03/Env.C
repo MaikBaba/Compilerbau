@@ -1,34 +1,39 @@
 #include "Env.H"
+#include "TypeException.H"
+
+
+using namespace std;
 
 Type Env::lookupVar(String id) {
-        std::unordered_map<std::string,Type>::iterator it;
+  unordered_map<string, Type>::iterator it;
 
-        it = contexts.back.find(id);
-        if (it == signatures.end()) {
-                //ERROR no var with this name exists
-        }
-        return it->second;
+  it = m_context.back.find(id);
+  if (it == m_context.end()) {
+    //ERROR no var with this name exists
+  }
+  return it->second;
 }
 
 FunType Env::lookupFun(String id) {
-        std::unordered_map<std::string,FunType>::iterator it;
-        it = signatures.find(id);
-        if (it == signatur.end()) {
-                //ERROR no fun with this name exists
-        }
-        return it->second;
+  unordered_map<string, FunType>::iterator it;
+  it = m_fun_context.find(id);
+  if (it == m_fun_context.end()) {
+    //ERROR no fun with this name exists
+  }
+  return it->second;
 }
 
 void Env::updateVar(String id, Type ty) {
-        std::pair<std::map<std::string, Type>::iterator,bool> ret;
-        ret = contexts.insert(std::pair<std::string, Type>(id, ty));
-        if (ret.second == false) {
-                //ERROR var with id already exist
-        }
+  pair<map<string, Type>::iterator, bool> ret;
+  ret = m_context.insert(pair<string, Type>(id, ty));
+  if (ret.second == false) {
+    //ERROR var with id already exist
+  }
+}
 
 void Env::updateFun(String id, Type ty) {
-    std::pair<std::map<std::string, Type>::iterator,bool> ret;
-    ret = signatures.insert(std::pair<std::string, Type>(id, ty));
+    pair<map<string, Type>::iterator, bool> ret;
+    ret = signatures.insert(std::pair<string, Type>(id, ty));
     if (ret.second == false) {
             //ERROR fun with id already exist
     }
