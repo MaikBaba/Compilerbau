@@ -641,7 +641,7 @@ void PrintAbsyn::visitListExp(ListExp *listexp)
     (*i)->accept(this);
     if (i != listexp->end() - 1) render(',');
   }
-}void PrintAbsyn::visitType(Type*p) {} //abstract class
+}void PrintAbsyn::visitType(BasicType*p) {} //abstract class
 
 void PrintAbsyn::visitType_bool(Type_bool* p)
 {
@@ -1189,7 +1189,7 @@ void ShowAbsyn::visitListExp(ListExp *listexp)
   }
 }
 
-void ShowAbsyn::visitType(Type* p) {} //abstract class
+void ShowAbsyn::visitType(BasicType* p) {} //abstract class
 
 void ShowAbsyn::visitType_bool(Type_bool* p)
 {

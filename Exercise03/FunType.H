@@ -1,9 +1,13 @@
 #include <list>
+#include <string>
 
-#include "Type.H"
+#include "Absyn.H"
+
+#include "BasicType.H"
 
 class FunType {
   public:
-          std::list<Type*> args;
-          Type* ty_;
+    Id fun_id;
+	std::list<BasicType*> fun_args;
+    BasicType* fun_type;
 };

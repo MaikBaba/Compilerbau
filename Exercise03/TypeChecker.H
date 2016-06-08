@@ -1,18 +1,20 @@
 #ifndef TYPECHECKER_H_
 #define TYPECHECKER_H_
 
-#include "Env.H"
-#include "Type.H"
 #include "Absyn.H"
+
+#include "Env.H"
+#include "BasicType.H"
 
 class TypeChecker : public Visitor
 {
 public:
 
         ~TypeChecker();
-        Type* typecheck(Visitable* v);
+        BasicType typecheck(Visitable* v);
 
-	Type infer(Env T, Exp e);
+
+	BasicType infer(Env T, Exp e);
 	Env extend(Env T, Ident x, Type t);
 	Env extend(Env, Def d);
 	Env newBlock(Env T);
@@ -76,15 +78,15 @@ public:
 	void visitListExp(ListExp* p);
 	void visitListId(ListId* p);
 
-        void visitId(Id x);
-        void visitInteger(Integer x);
-        void visitChar(Char x);
-        void visitDouble(Double x);
-        void visitString(String x);
-        void visitIdent(Ident x);
+	void visitId(Id x);
+	void visitInteger(Integer x);
+	void visitChar(Char x);
+	void visitDouble(Double x);
+	void visitString(String x);
+	void visitIdent(Ident x);
 
 private:
         Env env_;
-        Type* ty_;
+        BasicType ty_;
 
 };

@@ -11,7 +11,7 @@ TypeChecker::~TypeChecker() {}
 
 /* Eigene Definitionen */
 
-Type* TypeChecker::typecheck(Visitable* v) {
+BasicType* TypeChecker::typecheck(Visitable* v) {
     v−>accept (this);
     return _ty ;
 }

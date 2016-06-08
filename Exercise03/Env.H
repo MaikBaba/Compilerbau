@@ -1,11 +1,12 @@
 #include <list>
-#include <unordered_map>
 #include <map>
+#include <string>
 
-#include "string"
-#include "Type.H"
 #include "Absyn.H"
+
+#include "BasicType.H"
 #include "FunType.H"
+#include "TypeException.H"
 
 using namespace std;
 
@@ -13,13 +14,12 @@ class Env {
 
 public:
 	
-  Type& lookupVar(string id);
-  FunType lookupFun(string id);
-  void updateVar(string id, Type& ty);
-  void updateFun(string id, FunType& func);
+  BasicType lookupVar(Id id);
+  FunType lookupFun(Id id);
+  void updateVar(Id id, BasicType* ty);
+  void updateFun(Id id, FunType* func);
 
 private:
-  unordered_map <string, FunType> m_fun_context;
-  list<unordered_map<string, Type&>> m_context;
-
+  map<Id, FunType> m_fun_context;
+  list<map<Id, BasicType> > m_context;
 };
