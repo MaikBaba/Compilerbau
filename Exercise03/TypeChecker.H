@@ -4,6 +4,7 @@
 #include "Absyn.H"
 
 #include "Env.H"
+#include "FunType.H"
 
 class TypeChecker : public Visitor
 {
@@ -12,19 +13,19 @@ public:
     ~TypeChecker();
     Type* typecheck(Visitable* v);
 
-    Type lookup (Ident x, Env T);
-    FunType lookup(Ident f, Env T);
-	Env extend(Env T, Ident x, Type t);
-	Env extend(Env T, Def d);
+    //Type lookup (Ident x, Env T);
+    //FunType lookup(Ident f, Env T);
+	Env extend(Env T, Ident x, Type* t);
+	Env extend(Env T, Def* d);
 	Env newBlock(Env T);
 	Env emptEnv();
 
-	Type infer(Env T, Exp e);
+	Type* infer(Env T, Exp* e);
 
-	void check(Env T, Exp e, Type t);
-	void check(Env T, Stms s);
-	void check(Env T, Def d);
-	void check(Program p);
+	void check(Env T, Exp* e, Type* t);
+	void check(Env T, Stm* s);
+	void check(Env T, Def* d);
+	void check(Program* p);
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
@@ -91,3 +92,5 @@ private:
         Type* ty_;
 
 };
+
+#endif

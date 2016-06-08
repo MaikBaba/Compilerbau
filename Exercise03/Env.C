@@ -2,7 +2,7 @@
 
 using namespace std;
 
-BasicType Env::lookupVar(Id id){
+Type* Env::lookupVar(Id id){
   map<Id, BasicType>::iterator it;
 
   // Find variable at the last element ("top of the stack")
@@ -13,7 +13,7 @@ BasicType Env::lookupVar(Id id){
   return it->second;
 }
 
-FunType Env::lookupFun(Id id){
+FunType* Env::lookupFun(Id id){
   map<Id, FunType>::iterator it;
   it = m_fun_context.find(id);
   if (it == m_fun_context.end()) {

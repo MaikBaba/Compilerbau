@@ -14,8 +14,8 @@ class Env {
 
 public:
 	
-  BasicType lookupVar(Id id);
-  FunType lookupFun(Id id);
+  Type* lookupVar(Id id);
+  FunType* lookupFun(Id id);
   void updateVar(Id id, Type* ty);
   void updateFun(Id id, FunType* func);
 

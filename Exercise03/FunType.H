@@ -1,9 +1,10 @@
+#ifndef FUNTYPE_H_
+#define FUNTYPE_H_
+
 #include <list>
 #include <string>
 
 #include "Absyn.H"
-
-#include "BasicType.H"
 
 using namespace std;
 
@@ -13,3 +14,5 @@ class FunType {
 	list<Type*> fun_args;
     Type* fun_type;
 };
+
+#endif
