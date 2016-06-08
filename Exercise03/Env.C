@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Type& Env::lookupVar(string id) {
+Type Env::lookupVar(string id) {
   unordered_map<string,Type>::iterator it;
 
   // Find variable at the last element ("top of the stack")
@@ -15,8 +15,8 @@ Type& Env::lookupVar(string id) {
   return it->second;
 }
 
-FunType Env::lookupFun(string id) {
-  unordered_map<string,FunType>::iterator it;
+Type Env::lookupFun(string id) {
+  unordered_map<string, FunType>::iterator it;
   it = m_fun_context.find(id);
   if (it == m_fun_context.end()) {
     //ERROR no fun with this name exists
@@ -33,6 +33,11 @@ void Env::updateVar(string id, Type& ty) {
   }
 }
 
-void Env::updateFun(String id, FunType& ty) {
-  // TODO
+
+void Env::updateFun(string id, FunType& ty) {
+    pair<map<string, FunType&>::iterator, bool> ret;
+    ret = signatures.insert(std::pair<string, FunType&>(id, ty));
+    if (ret.second == false) {
+      //ERROR fun with id already exist
+    }
 }
