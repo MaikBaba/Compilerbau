@@ -29,7 +29,9 @@ int main(int argc, char ** argv)
   if (parse_tree)
   {
     try {
-      new TypeChecker().typecheck(parse_tree);
+
+      TypeChecker* tc = new TypeChecker();
+      tc->typecheck(parse_tree);
       } catch (TypeException &e) {
           printf("TYPE ERROR");
           std::cout<< e.what();

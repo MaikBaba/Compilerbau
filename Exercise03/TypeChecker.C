@@ -11,7 +11,7 @@ TypeChecker::~TypeChecker() {}
 /* Eigene Definitionen */
 
 Type* TypeChecker::typecheck(Visitable* v) {
-    v−>accept(this);
+    v->accept(this);
     return ty_ ;
 }
 
@@ -123,7 +123,6 @@ void TypeChecker::visitSIfElse(SIfElse *sifelse)
 void TypeChecker::visitETrue(ETrue *etrue)
 {
   /* Code For ETrue Goes Here */
-
 
 }
 

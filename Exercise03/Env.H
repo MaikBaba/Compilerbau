@@ -1,10 +1,12 @@
+#ifndef ENV_H_
+#define ENV_H_
+
 #include <list>
 #include <map>
 #include <string>
 
 #include "Absyn.H"
 
-#include "BasicType.H"
 #include "FunType.H"
 #include "TypeException.H"
 
@@ -23,3 +25,5 @@ private:
   map<Id, FunType*> m_fun_context;
   list<map<Id, Type*> > m_context;
 };
+
+#endif
