@@ -15,6 +15,7 @@ BasicType TypeChecker::typecheck(Visitable* v) {
     return ty_ ;
 }
 
+//
 void TypeChecker::visitProgram(Program* t) {} //abstract class
 void TypeChecker::visitDef(Def* t) {} //abstract class
 void TypeChecker::visitArg(Arg* t) {} //abstract class
@@ -24,15 +25,13 @@ void TypeChecker::visitType(Type* t) {} //abstract class
 
 void TypeChecker::visitPDefs(PDefs *pdefs)
 {
-  /* Code For PDefs Goes Here */
-
-
+  env_.clearEnv();
   typecheck(pdefs->listdef_);
-
 }
 
 void TypeChecker::visitDFun(DFun *dfun)
 {
+	//TODO
   /* Code For DFun Goes Here */
 
   dfun->type_->accept(this);
@@ -44,11 +43,7 @@ void TypeChecker::visitDFun(DFun *dfun)
 
 void TypeChecker::visitADecl(ADecl *adecl)
 {
-  /* Code For ADecl Goes Here */
-
-  adecl->type_->accept(this);
-  visitId(adecl->id_);
-
+	//TODO
 }
 
 void TypeChecker::visitSExp(SExp *sexp)
@@ -79,13 +74,13 @@ void TypeChecker::visitSInit(SInit *sinit)
 void TypeChecker::visitSReturn(SReturn *sreturn)
 {
   /* Code For SReturn Goes Here */
-
+	//TODO
 }
 
 void TypeChecker::visitSReturnVoid(SReturnVoid *sreturnvoid)
 {
   /* Code For SReturnVoid Goes Here */
-
+	//TODO
 }
 
 void TypeChecker::visitSWhile(SWhile *swhile)
@@ -120,6 +115,7 @@ void TypeChecker::visitSIfElse(SIfElse *sifelse)
   typecheck(sifelse->stm_2);
 }
 
+//
 void TypeChecker::visitETrue(ETrue *etrue)
 {
 	ty_ = BasicType::BOOLEAN;
@@ -150,24 +146,22 @@ void TypeChecker::visitEId(EId *eid)
 	visitId(eid->id_);
 }
 
+//
 void TypeChecker::visitEApp(EApp *eapp)
 {
-  /* Code For EApp Goes Here */
+	//TODO
+	std::vector<BasicType>* fun_args = new std::vector<BasicType>();
 
-  // visitId(eapp->id_);
-  // eapp->listexp_->accept(this);
+	for(ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it)
+	{
+		fun_args->push_back(typecheck(*it));
+	}
 
-  FunType* fun = env_.lookupFun(eapp->id_);
-
-  std::vector<Type*>* fun_args2 = new std::vector<Type*>();
-
-  for (ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it) {
-    fun_args2->push_back(typecheck(*it));
-  }
-
-  //Jetzt die Signatur vergleichen falls nötig;
+	delete(fun_args);
 }
 
+//Hier werden die Operationen implemtier, sie prüfen den Typ der Operatoren
+//und weisen der Membervariable den jeweiligen Typ zu.
 void TypeChecker::visitEPIncr(EPIncr *epincr)
 {
 	ty_ = typecheck(epincr->exp_);
@@ -404,15 +398,13 @@ void TypeChecker::visitEAss(EAss *eass)
 	ty_ = ty_One;
 }
 
+//
 void TypeChecker::visitETyped(ETyped *etyped)
 {
-  /* Code For ETyped Goes Here */
-
-  etyped->exp_->accept(this);
-  etyped->type_->accept(this);
-
+	throw new TypeException("ERROR: Call visitETyped");
 }
 
+//
 void TypeChecker::visitType_bool(Type_bool *type_bool)
 {
 	ty_ = BasicType::BOOLEAN;
@@ -438,47 +430,56 @@ void TypeChecker::visitType_string(Type_string *type_string)
 	ty_ = BasicType::STRING;
 }
 
-
+//
 void TypeChecker::visitListDef(ListDef* listdef)
 {
-	  for (ListDef::iterator i = listdef->begin() ; i != listdef->end() ; ++i)
-	  {
-		DFun* fun = (DFun*)*i;
+	//TODO
+	DFun* fun;
+	ADecl* adecl;
 
-		std::vector<BasicType>* listarg = new vector<BasicType>();
+	std::vector<BasicType>* fun_args;
 
-		  for (ListArg::iterator it= fun->listarg_->begin() ; it != fun->listarg_->end() ; ++it)
-		  {
-			  ADecl* decl = (ADecl*)*it;
+	for(ListDef::iterator listdefit = listdef->begin() ; listdefit != listdef->end() ; ++listdefit)
+	{
+		fun = (DFun*)*listdefit;
 
-			  decl
-		  }
-	  }
+		fun_args = new std::vector<BasicType>();
 
-  for (ListDef::iterator i = listdef->begin() ; i != listdef->end() ; ++i)
-  {
-    typechecker(*i);
-  }
+		for (ListArg::iterator listargit = fun->listarg_->begin() ; listargit != fun->listarg_->end() ; ++listargit)
+		{
+			adecl = (ADecl*)*listargit;
+
+		}
+
+		typecheck(fun->type_);
+		env_.updateFun(fun->id_,)
+	}
+
+	for (ListDef::iterator it = listdef->begin(); it != listdef->end(); ++it)
+	{
+		typecheck(*it);
+	}
 }
 
 void TypeChecker::visitListArg(ListArg* listarg)
 {
-  for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
+  for (ListArg::iterator it = listarg->begin(); it != listarg->end(); ++it)
   {
-    (*i)->accept(this);
+	  typecheck(*it);
   }
 }
 
 void TypeChecker::visitListStm(ListStm* liststm)
 {
-  for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
+  for (ListStm::iterator it = liststm->begin(); it != liststm->end(); ++it)
   {
-    (*i)->accept(this);
+	  typecheck(*it);
   }
 }
 
 void TypeChecker::visitListExp(ListExp* listexp)
 {
+	//TODO
   for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
   {
     (*i)->accept(this);
@@ -487,18 +488,22 @@ void TypeChecker::visitListExp(ListExp* listexp)
 
 void TypeChecker::visitListId(ListId* listid)
 {
+	//TODO
   for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
   {
     visitId(*i) ;
   }
 }
 
+//Hier wird nach einer ID in der env gesucht und an die Membervariable ty übergeben.
 void TypeChecker::visitId(Id x)
 {
     /* Code for Id Goes Here */
 	ty_ = env_.lookupVar(x);
 }
 
+//Hier wird der Membervariable ty ein Typ zugewiesen, ausser BOOL und VOID alle anderen werden von visitE* aufgerufen.
+//Könne man also auch oben in visitE* zuweisen.
 void TypeChecker::visitInteger(Integer x)
 {
     /* Code for Integer Goes Here */

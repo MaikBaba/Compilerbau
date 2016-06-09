@@ -23,8 +23,9 @@ public:
   BasicType lookupFun(Id id, vector<BasicType>* arglist);
   void updateVar(Id id, BasicType ty);
   void updateFun(Id id, FunType func);
-  void addScop();
-  void delScop();
+  void addScope();
+  void delScope();
+  void clearEnv();
 
 private:
   multimap<Id, FunType*> m_fun_context;
