@@ -1,3 +1,3 @@
 #include "Absyn.H"
 
-enum BasicType { INT, DOUBLE, STRING, BOOL, VOID };
+enum BasicType { INTEGER, DOUBLE, STRING, BOOLEAN, VOID };

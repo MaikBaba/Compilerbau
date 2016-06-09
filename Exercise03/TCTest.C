@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
   }
   else input = stdin;
   /* The default entry point is used. For other options see Parser.H */
-  Program *parse_tree = pProgram(input);
+  Program* parse_tree = pProgram(input);
   if (parse_tree)
   {
     try {

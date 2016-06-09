@@ -10,7 +10,7 @@ TypeChecker::~TypeChecker() {}
 
 /* Eigene Definitionen */
 
-Type* TypeChecker::typecheck(Visitable* v) {
+BasicType TypeChecker::typecheck(Visitable* v) {
     v->accept(this);
     return ty_ ;
 }
@@ -26,7 +26,8 @@ void TypeChecker::visitPDefs(PDefs *pdefs)
 {
   /* Code For PDefs Goes Here */
 
-  pdefs->listdef_->accept(this);
+
+  typecheck(pdefs->listdef_);
 
 }
 
@@ -52,37 +53,32 @@ void TypeChecker::visitADecl(ADecl *adecl)
 
 void TypeChecker::visitSExp(SExp *sexp)
 {
-  /* Code For SExp Goes Here */
-
-  sexp->exp_->accept(this);
-
+	typecheck(sexp->exp_);
 }
 
 void TypeChecker::visitSDecls(SDecls *sdecls)
 {
-  /* Code For SDecls Goes Here */
-
-  sdecls->type_->accept(this);
-  sdecls->listid_->accept(this);
-
+	typecheck(sdecls->type_);
+	typecheck(sdecls->type_);
 }
 
 void TypeChecker::visitSInit(SInit *sinit)
 {
-  /* Code For SInit Goes Here */
+	BasicType ty_One = typecheck(sinit->type_);
+	BasicType ty_Two = typecheck(sinit->exp_);
 
-  sinit->type_->accept(this);
-  visitId(sinit->id_);
-  sinit->exp_->accept(this);
+	if(ty_One != ty_Two)
+	{
+		throw new TypeException("Declaration: ")
+	}
 
-  env_.updateVar(sinit->id_, sinit->type_);
+	env_.updateVar(sinit->id_, ty_One);
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitSReturn(SReturn *sreturn)
 {
   /* Code For SReturn Goes Here */
-
-  sreturn->exp_->accept(this);
 
 }
 
@@ -90,79 +86,68 @@ void TypeChecker::visitSReturnVoid(SReturnVoid *sreturnvoid)
 {
   /* Code For SReturnVoid Goes Here */
 
-
 }
 
 void TypeChecker::visitSWhile(SWhile *swhile)
 {
-  /* Code For SWhile Goes Here */
+	ty_ = typecheck(swhile->exp_);
 
-  swhile->exp_->accept(this);
-  swhile->stm_->accept(this);
+	if(ty_ != BasicType::BOOLEAN)
+	{
+		throw new TypeException("While: ");
+	}
 
+	typecheck(swhile->stm_);
 }
 
 void TypeChecker::visitSBlock(SBlock *sblock)
 {
-  /* Code For SBlock Goes Here */
-
-  sblock->liststm_->accept(this);
-
+	env_.addScop();
+	typecheck(sblock->liststm_);
+	env_.delScop();
 }
 
 void TypeChecker::visitSIfElse(SIfElse *sifelse)
 {
-  /* Code For SIfElse Goes Here */
+  ty_ = typecheck(sifelse->exp_);
 
-  sifelse->exp_->accept(this);
-  sifelse->stm_1->accept(this);
-  sifelse->stm_2->accept(this);
+  if(ty_ != BasicType::BOOLEAN)
+  {
+	  throw new TypeException("If: ");
+  }
 
+  typecheck(sifelse->stm_1);
+  typecheck(sifelse->stm_2);
 }
 
 void TypeChecker::visitETrue(ETrue *etrue)
 {
-  /* Code For ETrue Goes Here */
-
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEFalse(EFalse *efalse)
 {
-  /* Code For EFalse Goes Here */
-
-
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEInt(EInt *eint)
 {
-  /* Code For EInt Goes Here */
-
   visitInteger(eint->integer_);
-
 }
 
 void TypeChecker::visitEDouble(EDouble *edouble)
 {
-  /* Code For EDouble Goes Here */
-
   visitDouble(edouble->double_);
-
 }
 
 void TypeChecker::visitEString(EString *estring)
 {
-  /* Code For EString Goes Here */
-
   visitString(estring->string_);
-
 }
 
 void TypeChecker::visitEId(EId *eid)
 {
-  /* Code For EId Goes Here */
-
-  visitId(eid->id_);
-
+	visitId(eid->id_);
 }
 
 void TypeChecker::visitEApp(EApp *eapp)
@@ -185,161 +170,238 @@ void TypeChecker::visitEApp(EApp *eapp)
 
 void TypeChecker::visitEPIncr(EPIncr *epincr)
 {
-  /* Code For EPIncr Goes Here */
+	ty_ = typecheck(epincr->exp_);
 
-  epincr->exp_->accept(this);
-
+	if(ty_ != BasicType::DOUBLE &&
+	   ty_ != BasicType::INTEGER)
+	{
+		throw new TypeException("Operation: ");
+	}
 }
 
 void TypeChecker::visitEPDecr(EPDecr *epdecr)
 {
-  /* Code For EPDecr Goes Here */
+	ty_ = typecheck(epdecr->exp_);
 
-  epdecr->exp_->accept(this);
-
+	if(ty_ != BasicType::DOUBLE &&
+	   ty_ != BasicType::INTEGER)
+	{
+		throw new TypeException("Operation: ");
+	}
 }
 
 void TypeChecker::visitEIncr(EIncr *eincr)
 {
-  /* Code For EIncr Goes Here */
+	ty_ = typecheck(eincr->exp_);
 
-  eincr->exp_->accept(this);
-
+	if(ty_ != BasicType::DOUBLE &&
+	   ty_ != BasicType::INTEGER)
+	{
+		throw new TypeException("Operation: ");
+	}
 }
 
 void TypeChecker::visitEDecr(EDecr *edecr)
 {
-  /* Code For EDecr Goes Here */
+	ty_ = typecheck(edecr->exp_);
 
-  edecr->exp_->accept(this);
-
+	if(ty_ != BasicType::DOUBLE &&
+	   ty_ != BasicType::INTEGER)
+	{
+		throw new TypeException("Operation: ");
+	}
 }
 
 void TypeChecker::visitETimes(ETimes *etimes)
 {
-  /* Code For ETimes Goes Here */
+	BasicType ty_One = typecheck(etimes->exp_1);
+	BasicType ty_Two = typecheck(etimes->exp_2);
 
-  etimes->exp_1->accept(this);
-  etimes->exp_2->accept(this);
-  //val = typecheck(etimes->exp_1) * typecheck(etimes->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitEDiv(EDiv *ediv)
 {
-  /* Code For EDiv Goes Here */
+	BasicType ty_One = typecheck(ediv->exp_1);
+	BasicType ty_Two = typecheck(ediv->exp_2);
 
-  ediv->exp_1->accept(this);
-  ediv->exp_2->accept(this);
-  //val = typecheck(ediv->exp_1) / typecheck(ediv->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitEPlus(EPlus *eplus)
 {
-  /* Code For EPlus Goes Here */
+	BasicType ty_One = typecheck(eplus->exp_1);
+	BasicType ty_Two = typecheck(eplus->exp_2);
 
-  eplus->exp_1->accept(this);
-  eplus->exp_2->accept(this);
-  //val = typecheck(eplus->exp_1) + typecheck(eplus->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
+
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitEMinus(EMinus *eminus)
 {
-  /* Code For EMinus Goes Here */
+	BasicType ty_One = typecheck(eminus->exp_1);
+	BasicType ty_Two = typecheck(eminus->exp_2);
 
-  eminus->exp_1->accept(this);
-  eminus->exp_2->accept(this);
-  //val = typecheck(eminus->exp_1) - typecheck(eminus->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitELt(ELt *elt)
 {
-  /* Code For ELt Goes Here */
+	BasicType ty_One = typecheck(elt->exp_1);
+	BasicType ty_Two = typecheck(elt->exp_2);
 
-  elt->exp_1->accept(this);
-  elt->exp_2->accept(this);
-  //val = typecheck(elt->exp_1) < typecheck(elt->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEGt(EGt *egt)
 {
-  /* Code For EGt Goes Here */
+	BasicType ty_One = typecheck(egt->exp_1);
+	BasicType ty_Two = typecheck(egt->exp_2);
 
-  egt->exp_1->accept(this);
-  egt->exp_2->accept(this);
-  //val = typecheck(egt->exp_1) > typecheck(egt->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitELtEq(ELtEq *elteq)
 {
-  /* Code For ELtEq Goes Here */
+	BasicType ty_One = typecheck(elteq->exp_1);
+	BasicType ty_Two = typecheck(elteq->exp_2);
 
-  elteq->exp_1->accept(this);
-  elteq->exp_2->accept(this);
-  //val = typecheck(elteq->exp_1) <= typecheck(elteq->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEGtEq(EGtEq *egteq)
 {
-  /* Code For EGtEq Goes Here */
+	BasicType ty_One = typecheck(egteq->exp_1);
+	BasicType ty_Two = typecheck(egteq->exp_2);
 
-  egteq->exp_1->accept(this);
-  egteq->exp_2->accept(this);
-  //val = typecheck(egteq->exp_1) >= typecheck(egteq->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEEq(EEq *eeq)
 {
-  /* Code For EEq Goes Here */
+	BasicType ty_One = typecheck(eeq->exp_1);
+	BasicType ty_Two = typecheck(eeq->exp_2);
 
-  eeq->exp_1->accept(this);
-  eeq->exp_2->accept(this);
-  //val = typecheck(eeq->exp_1) == typecheck(eeq->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitENEq(ENEq *eneq)
 {
-  /* Code For ENEq Goes Here */
+	BasicType ty_One = typecheck(eneq->exp_1);
+	BasicType ty_Two = typecheck(eneq->exp_2);
 
-  eneq->exp_1->accept(this);
-  eneq->exp_2->accept(this);
-  //val = typecheck(eneq->exp_1) != typecheck(eneq->exp_2);
+	if(ty_One != ty_Two || (ty_One != BasicType::BOOLEAN &&
+							ty_One != BasicType::DOUBLE &&
+							ty_One != BasicType::INTEGER &&
+							ty_One != BasicType::STRING))
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEAnd(EAnd *eand)
 {
-  /* Code For EAnd Goes Here */
+	BasicType ty_One = typecheck(eand->exp_1);
+	BasicType ty_Two = typecheck(eand->exp_2);
 
-  eand->exp_1->accept(this);
-  eand->exp_2->accept(this);
-  //val = typecheck(eand->exp_1) && typecheck(eand->exp_2);
+	if(ty_One != ty_Two || ty_One != BasicType::BOOLEAN)
+	{
+		throw new TypeException("Operation: ");
+	}
+
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEOr(EOr *eor)
 {
-  /* Code For EOr Goes Here */
+	BasicType ty_One = typecheck(eor->exp_1);
+	BasicType ty_Two = typecheck(eor->exp_2);
 
-  eor->exp_1->accept(this);
-  eor->exp_2->accept(this);
-  //val = typecheck(eor->exp_1) || typecheck(eor->exp_2);
+	if(ty_One != ty_Two || ty_One != BasicType::BOOLEAN)
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitEAss(EAss *eass)
 {
-  /* Code For EAss Goes Here */
+	BasicType ty_One = typecheck(eass->exp_1);
+	BasicType ty_Two = typecheck(eass->exp_2);
 
-  eass->exp_1->accept(this);
-  eass->exp_2->accept(this);
+	if(ty_One != ty_Two)
+	{
+		throw new TypeException("Operation: ");
+	}
 
+	ty_ = ty_One;
 }
 
 void TypeChecker::visitETyped(ETyped *etyped)
@@ -353,45 +415,49 @@ void TypeChecker::visitETyped(ETyped *etyped)
 
 void TypeChecker::visitType_bool(Type_bool *type_bool)
 {
-  /* Code For Type_bool Goes Here */
-
-
+	ty_ = BasicType::BOOLEAN;
 }
 
 void TypeChecker::visitType_int(Type_int *type_int)
 {
-  /* Code For Type_int Goes Here */
-
-
+	ty_ = BasicType::INTEGER;
 }
 
 void TypeChecker::visitType_double(Type_double *type_double)
 {
-  /* Code For Type_double Goes Here */
-
-
+	ty_ = BasicType::DOUBLE;
 }
 
 void TypeChecker::visitType_void(Type_void *type_void)
 {
-  /* Code For Type_void Goes Here */
-
-
+	ty_ = BasicType::VOID;
 }
 
 void TypeChecker::visitType_string(Type_string *type_string)
 {
-  /* Code For Type_string Goes Here */
-
-
+	ty_ = BasicType::STRING;
 }
 
 
 void TypeChecker::visitListDef(ListDef* listdef)
 {
+	  for (ListDef::iterator i = listdef->begin() ; i != listdef->end() ; ++i)
+	  {
+		DFun* fun = (DFun*)*i;
+
+		std::vector<BasicType>* listarg = new vector<BasicType>();
+
+		  for (ListArg::iterator it= fun->listarg_->begin() ; it != fun->listarg_->end() ; ++it)
+		  {
+			  ADecl* decl = (ADecl*)*it;
+
+			  decl
+		  }
+	  }
+
   for (ListDef::iterator i = listdef->begin() ; i != listdef->end() ; ++i)
   {
-    (*i)->accept(this);
+    typechecker(*i);
   }
 }
 
@@ -427,34 +493,38 @@ void TypeChecker::visitListId(ListId* listid)
   }
 }
 
-
 void TypeChecker::visitId(Id x)
 {
-  /* Code for Id Goes Here */
+    /* Code for Id Goes Here */
 	ty_ = env_.lookupVar(x);
 }
 
 void TypeChecker::visitInteger(Integer x)
 {
-  /* Code for Integer Goes Here */
+    /* Code for Integer Goes Here */
+	ty_ = BasicType::INTEGER;
 }
 
 void TypeChecker::visitChar(Char x)
 {
-  /* Code for Char Goes Here */
+    /* Code for Char Goes Here */
+	throw new TypeException("ERROR: Call visitChar");
 }
 
 void TypeChecker::visitDouble(Double x)
 {
-  /* Code for Double Goes Here */
+    /* Code for Double Goes Here */
+	ty_ = BasicType::DOUBLE;
 }
 
 void TypeChecker::visitString(String x)
 {
-  /* Code for String Goes Here */
+	/* Code for String Goes Here */
+	ty_ = BasicType::STRING;
 }
 
 void TypeChecker::visitIdent(Ident x)
 {
-  /* Code for Ident Goes Here */
+	/* Code for Ident Goes Here */
+	throw new TypeException("ERROR: Call visitIdent");
 }

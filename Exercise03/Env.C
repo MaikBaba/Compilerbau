@@ -2,8 +2,8 @@
 
 using namespace std;
 
-Type* Env::lookupVar(Id id){
-  map<Id, Type*>::iterator it;
+BasicType Env::lookupVar(Id id){
+  map<Id, BasicType>::iterator it;
   // Find variable at the last element ("top of the stack")
   it = m_context.back().find(id);
   if (it == m_context.back().end()) {
@@ -12,7 +12,7 @@ Type* Env::lookupVar(Id id){
   return it->second;
 }
 
-FunType* Env::lookupFun(Id id){
+BasicType Env::lookupFun(Id id, vector<BasicType>* arglist){
   map<Id, FunType*>::iterator it;
   it = m_fun_context.find(id);
   if (it == m_fun_context.end()) {
@@ -36,4 +36,12 @@ void Env::updateFun(Id id, FunType* ty) {
     if (ret.second == false) {
       //ERROR fun with id already exist
     }
+}
+
+void Env::addScop() {
+	m_context.push_back(new multimap<Id, BasicType>);
+}
+
+void ENv::delScop() {
+	m_context.pop_back();
 }

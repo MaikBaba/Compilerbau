@@ -8,22 +8,27 @@
 #include "Absyn.H"
 
 #include "FunType.H"
+#include "BasicType.H"
 #include "TypeException.H"
 
 using namespace std;
 
 class Env {
 
+	//TODO all new function
+
 public:
-	
-  Type* lookupVar(Id id);
-  FunType* lookupFun(Id id);
-  void updateVar(Id id, Type* ty);
-  void updateFun(Id id, FunType* func);
+
+  BasicType lookupVar(Id id);
+  BasicType lookupFun(Id id, vector<BasicType>* arglist);
+  void updateVar(Id id, BasicType ty);
+  void updateFun(Id id, FunType func);
+  void addScop();
+  void delScop();
 
 private:
-  map<Id, FunType*> m_fun_context;
-  list<map<Id, Type*> > m_context;
+  multimap<Id, FunType*> m_fun_context;
+  list<map<Id, BasicType> > m_context;
 };
 
 #endif
