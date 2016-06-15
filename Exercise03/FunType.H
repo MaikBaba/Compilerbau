@@ -6,13 +6,14 @@
 
 #include "Absyn.H"
 
+#include "BasicType.H"
+
 using namespace std;
 
 class FunType {
   public:
-    Id fun_id;
-	list<Type*> fun_args;
-    Type* fun_type;
+	list<BasicType> fun_args;
+    BasicType fun_type;
 };
 
 #endif

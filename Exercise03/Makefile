@@ -1,5 +1,5 @@
 CC = g++
-CCFLAGS = -g -W -Wall
+CCFLAGS = -g -W -Wall -std=c++11
 
 FLEX = flex
 FLEX_OPTS = -PCPP

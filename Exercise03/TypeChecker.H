@@ -84,7 +84,7 @@ public:
 
 private:
         Env env_;
-        BasicType* ty_;
+        BasicType ty_;
 
 };
 

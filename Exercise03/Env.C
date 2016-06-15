@@ -21,16 +21,16 @@ BasicType Env::lookupFun(Id id, vector<BasicType>* arglist){
   return it->second;
 }
 
-void Env::updateVar(Id id, Type* ty) {
-  pair<map<Id, Type*>::iterator, bool> ret;
+void Env::updateVar(Id id, BasicType ty) {
+  pair<map<Id, BasicType>::iterator, bool> ret;
   // insert to last list item ("top of stack") a new pair (symbol table)
-  ret = m_context.back().insert(pair<Id, Type*>(id, ty));
+  ret = m_context.back().insert(pair<Id, BasicType>(id, ty));
   if (ret.second == false) {
-    //ERROR var with id already exist
+	  throw new TypeException("Variable already exists");
   }
 }
 
-void Env::updateFun(Id id, FunType* ty) {
+void Env::updateFun(Id id, FunType ty) {
     pair<map<Id, FunType*>::iterator, bool> ret;
     ret = m_fun_context.insert(std::pair<Id, FunType*>(id, ty));
     if (ret.second == false) {
@@ -38,10 +38,19 @@ void Env::updateFun(Id id, FunType* ty) {
     }
 }
 
-void Env::addScop() {
-	m_context.push_back(new multimap<Id, BasicType>);
+void Env::addScope() {
+	m_context.push_back(new map<Id, BasicType>());
 }
 
-void ENv::delScop() {
-	m_context.pop_back();
+void Env::delScope() {
+	if(!m_context.empty()) {
+		delete(m_context.back());
+		m_context.pop_back();
+	}
+}
+
+void Env::clearEnv() {
+	for(auto item : m_context) {
+
+	}
 }

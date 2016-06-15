@@ -64,7 +64,7 @@ void TypeChecker::visitSInit(SInit *sinit)
 
 	if(ty_One != ty_Two)
 	{
-		throw new TypeException("Declaration: ")
+		throw new TypeException("Declaration: ");
 	}
 
 	env_.updateVar(sinit->id_, ty_One);
@@ -97,9 +97,9 @@ void TypeChecker::visitSWhile(SWhile *swhile)
 
 void TypeChecker::visitSBlock(SBlock *sblock)
 {
-	env_.addScop();
+	env_.addScope();
 	typecheck(sblock->liststm_);
-	env_.delScop();
+	env_.delScope();
 }
 
 void TypeChecker::visitSIfElse(SIfElse *sifelse)
@@ -452,7 +452,7 @@ void TypeChecker::visitListDef(ListDef* listdef)
 		}
 
 		typecheck(fun->type_);
-		env_.updateFun(fun->id_,)
+		//env_.updateFun(fun->id_,)
 	}
 
 	for (ListDef::iterator it = listdef->begin(); it != listdef->end(); ++it)

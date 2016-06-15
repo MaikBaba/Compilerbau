@@ -1,3 +1,8 @@
+#ifndef BASICTYPE_H_
+#define BASICTYPE_H_
+
 #include "Absyn.H"
 
-enum BasicType { INTEGER, DOUBLE, STRING, BOOLEAN, VOID };
+enum class BasicType { INTEGER, DOUBLE, STRING, BOOLEAN, VOID };
+
+#endif
