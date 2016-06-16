@@ -1,6 +1,8 @@
 #ifndef TYPECHECKER_H_
 #define TYPECHECKER_H_
 
+#include <set>
+
 #include "Absyn.H"
 
 #include "Env.H"

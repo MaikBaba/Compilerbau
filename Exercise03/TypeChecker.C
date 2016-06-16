@@ -453,27 +453,34 @@ void TypeChecker::visitType_string(Type_string *type_string)
 //
 void TypeChecker::visitListDef(ListDef* listdef)
 {
-	//TODO
-	DFun* fun;
-	ADecl* adecl;
+	set<Id>* fun_unique_ids = new set<Id>();
 
-	std::vector<BasicType>* fun_args;
+	for (ListDef::iterator defit = listdef->begin(); defit != listdef->end(); defit++) {
+		DFun* fun = (DFun*) *defit;
 
-	for(ListDef::iterator listdefit = listdef->begin() ; listdefit != listdef->end() ; ++listdefit)
-	{
-		fun = (DFun*)*listdefit;
-
-		fun_args = new std::vector<BasicType>(); //TODO delete
+        FunType* fundef = new FunType();
 
 		for (ListArg::iterator listargit = fun->listarg_->begin() ; listargit != fun->listarg_->end() ; ++listargit)
 		{
-			adecl = (ADecl*)*listargit;
+			ADecl* adecl = (ADecl*) *listargit;
 
+			auto ret = fun_unique_ids->insert(adecl->id_);
+
+			if(!ret.second) {
+				throw new TypeException("Functions arguments ids are not unique.");
+			}
+
+			fundef->fun_args.push_back(typecheck(adecl->type_));
 		}
 
-		typecheck(fun->type_);
-		//env_.updateFun(fun->id_,)
+		fun_unique_ids->clear();
+
+		fundef->fun_type = typecheck(fun->type_);
+
+		env_.updateFun(fun->id_, fundef);
 	}
+
+	delete(fun_unique_ids);
 
 	for (ListDef::iterator it = listdef->begin(); it != listdef->end(); ++it)
 	{
