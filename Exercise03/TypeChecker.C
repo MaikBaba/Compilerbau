@@ -463,7 +463,7 @@ void TypeChecker::visitListDef(ListDef* listdef)
 	{
 		fun = (DFun*)*listdefit;
 
-		fun_args = new std::vector<BasicType>();
+		fun_args = new std::vector<BasicType>(); //TODO delete
 
 		for (ListArg::iterator listargit = fun->listarg_->begin() ; listargit != fun->listarg_->end() ; ++listargit)
 		{
