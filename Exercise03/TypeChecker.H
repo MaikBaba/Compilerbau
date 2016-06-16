@@ -85,6 +85,8 @@ public:
 private:
         Env env_;
         BasicType ty_;
+        bool working_fun_has_return_statement;
+        DFun* working_fun;
 
 };
 

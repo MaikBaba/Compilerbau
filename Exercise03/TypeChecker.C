@@ -31,19 +31,24 @@ void TypeChecker::visitPDefs(PDefs *pdefs)
 
 void TypeChecker::visitDFun(DFun *dfun)
 {
-	//TODO
-  /* Code For DFun Goes Here */
+	env_.addScope();
+	working_fun = dfun;
+	working_fun_has_return_statement = false;
+	typecheck(dfun->listarg_);
+	typecheck(dfun->liststm_);
+	ty_ = typecheck(dfun->type_);
+	if(ty_ != BasicType::VOID && working_fun_has_return_statement == false)
+	{
+		throw new TypeException("The function must have a return statement.");
+	}
 
-  dfun->type_->accept(this);
-  visitId(dfun->id_);
-  dfun->listarg_->accept(this);
-  dfun->liststm_->accept(this);
-
+	env_.delScope();
 }
 
 void TypeChecker::visitADecl(ADecl *adecl)
 {
-	//TODO
+	ty_ = typecheck(adecl->type_);
+	env_.updateVar(adecl->id_,ty_);
 }
 
 void TypeChecker::visitSExp(SExp *sexp)
@@ -68,26 +73,40 @@ void TypeChecker::visitSInit(SInit *sinit)
 	}
 
 	env_.updateVar(sinit->id_, ty_One);
-	ty_ = ty_One;
+	//ty_ = ty_One;
 }
 
 void TypeChecker::visitSReturn(SReturn *sreturn)
 {
-  /* Code For SReturn Goes Here */
-	//TODO
+	BasicType ty_return = typecheck(sreturn->exp_);
+	BasicType ty_fun = typecheck(working_fun->type_);
+
+	if(ty_return != ty_fun)
+	{
+		throw TypeException("Return statement type dose not match with function return type");
+	}
+
+	working_fun_has_return_statement = true;
 }
 
 void TypeChecker::visitSReturnVoid(SReturnVoid *sreturnvoid)
 {
-  /* Code For SReturnVoid Goes Here */
-	//TODO
+	BasicType ty_fun = typecheck(working_fun->type_);
+
+	if(ty_fun != BasicType::VOID)
+	{
+		throw TypeException("Return statement type dose not match with function return type");
+	}
+
+	//Wird zwar nicht gebraucht aber der vollständigkeitshalber.
+	working_fun_has_return_statement = true;
 }
 
 void TypeChecker::visitSWhile(SWhile *swhile)
 {
-	ty_ = typecheck(swhile->exp_);
+	BasicType ty_while = typecheck(swhile->exp_);
 
-	if(ty_ != BasicType::BOOLEAN)
+	if(ty_while != BasicType::BOOLEAN)
 	{
 		throw new TypeException("While: ");
 	}
@@ -104,9 +123,9 @@ void TypeChecker::visitSBlock(SBlock *sblock)
 
 void TypeChecker::visitSIfElse(SIfElse *sifelse)
 {
-  ty_ = typecheck(sifelse->exp_);
+	BasicType ty_ifelse = typecheck(sifelse->exp_);
 
-  if(ty_ != BasicType::BOOLEAN)
+  if(ty_ifelse != BasicType::BOOLEAN)
   {
 	  throw new TypeException("If: ");
   }
@@ -149,13 +168,14 @@ void TypeChecker::visitEId(EId *eid)
 //
 void TypeChecker::visitEApp(EApp *eapp)
 {
-	//TODO
 	std::vector<BasicType>* fun_args = new std::vector<BasicType>();
 
 	for(ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it)
 	{
 		fun_args->push_back(typecheck(*it));
 	}
+
+	ty_ = env_.lookupFun(eapp->id_, fun_args);
 
 	delete(fun_args);
 }
@@ -479,26 +499,20 @@ void TypeChecker::visitListStm(ListStm* liststm)
 
 void TypeChecker::visitListExp(ListExp* listexp)
 {
-	//TODO
-  for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+	throw new TypeException("");
 }
 
 void TypeChecker::visitListId(ListId* listid)
 {
-	//TODO
-  for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
-  {
-    visitId(*i) ;
-  }
+	for (ListId::iterator it = listid->begin(); it != listid->end(); ++it)
+	{
+		env_.updateVar(*it, ty_);
+	}
 }
 
 //Hier wird nach einer ID in der env gesucht und an die Membervariable ty übergeben.
 void TypeChecker::visitId(Id x)
 {
-    /* Code for Id Goes Here */
 	ty_ = env_.lookupVar(x);
 }
 

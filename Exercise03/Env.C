@@ -51,6 +51,8 @@ void Env::delScope() {
 
 void Env::clearEnv() {
 	for(auto item : m_context) {
+		delete(item);
+		m_context.erase(item++);
 
 	}
 }

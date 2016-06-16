@@ -29,7 +29,7 @@ public:
 
 private:
   multimap<Id, FunType*> m_fun_context;
-  list<map<Id, BasicType> > m_context;
+  list<map<Id, BasicType>* > m_context;
 };
 
 #endif
