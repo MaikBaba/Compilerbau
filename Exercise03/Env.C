@@ -24,7 +24,20 @@ BasicType Env::lookupVar(Id id) {
 BasicType Env::lookupFun(Id id, vector<BasicType>* arglist) {
 	auto ret = m_fun_context->equal_range(id);
 	for(auto item = ret.first; item != ret.second; item++) {
-		if(equal(arglist->begin(), arglist->end(), item->second->fun_args.begin(), item->second->fun_args.end())) {
+		bool isequal = false;
+		if(arglist->size() == item->second->fun_args.size()) {
+			isequal = true;
+			auto funargit = item->second->fun_args.begin();
+			for(auto arglistit = arglist->begin(); arglistit != arglist->end();) {
+			    if ((*arglistit != *funargit)) {
+			    	isequal = false;
+			    }
+			    ++arglistit; ++funargit;
+			  }
+
+		}
+
+		if(isequal){
 			return item->second->fun_type;
 		}
 	}
@@ -41,8 +54,21 @@ void Env::updateVar(Id id, BasicType ty) {
 void Env::updateFun(Id id, FunType* ty) {
 	auto ret = m_fun_context->equal_range(id);
 	for(auto item = ret.first; item != ret.second; item++) {
-		if(equal(ty->fun_args.begin(), ty->fun_args.end(), item->second->fun_args.begin(), item->second->fun_args.end())) {
-		    throw new TypeException("Function " + id + " already declared.");
+		bool isequal = false;
+		if(ty->fun_args.size() == item->second->fun_args.size()) {
+			isequal = true;
+			auto funargit = item->second->fun_args.begin();
+			for(auto arglistit = ty->fun_args.begin(); arglistit != ty->fun_args.end();) {
+				if ((*arglistit != *funargit)) {
+					isequal = false;
+				}
+				++arglistit; ++funargit;
+			  }
+
+		}
+
+		if(isequal){
+			throw new TypeException("Function alread delc.");
 		}
 	}
 	m_fun_context->insert(pair<Id, FunType*>(id, ty));

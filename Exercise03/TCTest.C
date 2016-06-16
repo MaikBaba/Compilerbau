@@ -32,32 +32,14 @@ int main(int argc, char ** argv)
 
       TypeChecker* tc = new TypeChecker();
       tc->typecheck(parse_tree);
+
+      printf("OK");
       } catch (TypeException &e) {
           printf("TYPE ERROR");
           std::cout<< e.what();
           cout<< endl;
           return 1;
       }
-//      catch (IOException e) {
-//        System.err.println(e.toString());
-//          System.exit(1);
-//      } catch (Throwable e) {
-//          printf("SYNTAX ERROR");
-//          printf ("At line " + String.valueOf(l.line_num())
-//       + ", near \"" + l.buff() + "\" :");
-//          printf("     " + e.getMessage());
-//          System.exit(1);
-//    }
-    printf("\nParse Succesful!\n");
-    printf("\n[Abstract Syntax]\n");
-    ShowAbsyn *s = new ShowAbsyn();
-    printf("%s\n\n", s->show(parse_tree));
-    printf("[Linearized Tree]\n");
-    PrintAbsyn *p = new PrintAbsyn();
-    printf("%s\n\n", p->print(parse_tree));
-
-
-
 
     return 0;
   }
