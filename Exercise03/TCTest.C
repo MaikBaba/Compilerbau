@@ -34,9 +34,9 @@ int main(int argc, char ** argv)
       tc->typecheck(parse_tree);
 
       printf("OK");
-      } catch (TypeException &e) {
+      } catch (TypeException* e) {
           printf("TYPE ERROR");
-          std::cout<< e.what();
+          std::cout<< e->what();
           cout<< endl;
           return 1;
       }
