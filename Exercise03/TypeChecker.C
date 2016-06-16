@@ -450,33 +450,36 @@ void TypeChecker::visitType_string(Type_string *type_string)
 	ty_ = BasicType::STRING;
 }
 
-//
 void TypeChecker::visitListDef(ListDef* listdef)
 {
+	// Hieraus konstruieren wir später unseren FunType, der ins environment eingetragen wird
 	set<Id>* fun_unique_ids = new set<Id>();
 
+	// Iteriere über alle Funktionsdefinitionen
 	for (ListDef::iterator defit = listdef->begin(); defit != listdef->end(); defit++) {
 		DFun* fun = (DFun*) *defit;
 
         FunType* fundef = new FunType();
 
+        // Baue den FunType auf
 		for (ListArg::iterator listargit = fun->listarg_->begin() ; listargit != fun->listarg_->end() ; ++listargit)
 		{
+			// Hole aktuelle Argumentdeklaration und prüfe auf Einzigartigkeit
+			// (Argumente müssen verschiedene IDs haben)
 			ADecl* adecl = (ADecl*) *listargit;
-
 			auto ret = fun_unique_ids->insert(adecl->id_);
-
 			if(!ret.second) {
 				throw new TypeException("Functions arguments ids are not unique.");
 			}
-
+			// Prüfe, ob Argument einen gültigen Typ hat, falls ja füge in FunType ein
 			fundef->fun_args.push_back(typecheck(adecl->type_));
 		}
-
+		// Set löschen für nächste Runde
 		fun_unique_ids->clear();
-
+		// Prüfe, ob der deklarierte Rückgabetyp gültig ist
 		fundef->fun_type = typecheck(fun->type_);
 
+		// Füge FunType mit seiner ID in Environment ein
 		env_.updateFun(fun->id_, fundef);
 	}
 
@@ -554,52 +557,3 @@ void TypeChecker::visitIdent(Ident x)
 	/* Code for Ident Goes Here */
 	throw new TypeException("ERROR: Call visitIdent");
 }
-
-/*
-DFun* fun;
-	ADecl* adecl;
-
-	BasicType ty_1;
-	std::vector<BasicType>* func_args;
-
-	//save temporaer id for unique test
-	std::set<Id> func_args_id = std::set<Id>();
-	std::set<Id>::iterator it;
-
-	// insert function head in func_context of the environment
-	for (ListDef::iterator i_1 = listdef->begin(); i_1 != listdef->end(); ++i_1) {
-		fun = (DFun*) *i_1;
-
-		//new map for the function args
-		func_args = new std::vector<BasicType>();
-
-		//insert all function args
-		for (ListArg::iterator i_2 = fun->listarg_->begin(); i_2 != fun->listarg_->end(); ++i_2) {
-			adecl = (ADecl*) *i_2;
-
-
-
-			//test for unique id
-			it = func_args_id.find(adecl->id_);
-			if (it != func_args_id.end()) {
-				throw TypeException("Function argument with identifier:<" + adecl->id_
-					+ "> is already declared!");
-			}
-
-			ty_1 = typecheck(adecl->type_);
-			func_args->push_back(ty_1);
-
-			func_args_id.insert(adecl->id_);
-		}
-
-		typecheck(fun->type_);
-		env_.addFunc(ty_, fun->id_, func_args);
-
-		func_args_id.clear();
-	}
-
-	//check if all functions (there statements are valid))
-	for (ListDef::iterator i = listdef->begin(); i != listdef->end(); ++i) {
-		typecheck(*i);
-	}
-	*/
