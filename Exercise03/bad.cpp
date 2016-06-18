@@ -1,7 +1,15 @@
     // file bad.cc
-  
-    int f (double c)  
-    {
-      int n = 1 ;
-      while(c) ++n ;
+
+    int test(int a, double c){
+    	return a;
     }
+
+    int test(int a, double b){
+    	return a+b;
+    }
+
+    void f (double c)
+    {
+    	test(1, 2);
+    }
+

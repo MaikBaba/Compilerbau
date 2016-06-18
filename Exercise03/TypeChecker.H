@@ -10,6 +10,8 @@
 #include "FunType.H"
 #include "TypeException.H"
 
+using namespace std;
+
 class TypeChecker : public Visitor
 {
 public:
@@ -83,6 +85,8 @@ public:
 	void visitDouble(Double x);
 	void visitString(String x);
 	void visitIdent(Ident x);
+
+	string getBasicTypeName(BasicType& type);
 
 private:
         Env env_;

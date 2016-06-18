@@ -39,7 +39,7 @@ void TypeChecker::visitDFun(DFun *dfun)
 	ty_ = typecheck(dfun->type_);
 	if(ty_ != BasicType::VOID && working_fun_has_return_statement == false)
 	{
-		throw new TypeException("The function must have a return statement.");
+		throw new TypeException("The function " + dfun->id_ + " must have a return statement.");
 	}
 
 	env_.delScope();
@@ -83,7 +83,7 @@ void TypeChecker::visitSReturn(SReturn *sreturn)
 
 	if(ty_return != ty_fun)
 	{
-		throw TypeException("Return statement type dose not match with function return type");
+		throw TypeException("Return statement of function" + working_fun->id_ + "is not" + getBasicTypeName(ty_fun));
 	}
 
 	working_fun_has_return_statement = true;
@@ -95,7 +95,7 @@ void TypeChecker::visitSReturnVoid(SReturnVoid *sreturnvoid)
 
 	if(ty_fun != BasicType::VOID)
 	{
-		throw TypeException("Return statement type dose not match with function return type");
+		throw TypeException("Return statement of function" + working_fun->id_ + "is not void");
 	}
 
 	//Wird zwar nicht gebraucht aber der vollständigkeitshalber.
@@ -556,4 +556,22 @@ void TypeChecker::visitIdent(Ident x)
 {
 	/* Code for Ident Goes Here */
 	throw new TypeException("ERROR: Call visitIdent");
+}
+
+string TypeChecker::getBasicTypeName(BasicType& type) {
+
+	switch(type) {
+	case BasicType::BOOLEAN:
+		return "Boolean";
+	case BasicType::INTEGER:
+		return "Integer";
+	case BasicType::DOUBLE:
+		return "Double";
+	case BasicType::VOID:
+		return "Void";
+	case BasicType::STRING:
+		return "String";
+	default:
+		return "UNKNOWN";
+	}
 }
