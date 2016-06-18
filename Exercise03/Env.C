@@ -68,7 +68,7 @@ void Env::updateFun(Id id, FunType* ty) {
 		}
 
 		if(isequal){
-			throw new TypeException("Function alread delc.");
+			throw new TypeException("Function " + id + " already delc.");
 		}
 	}
 	m_fun_context->insert(pair<Id, FunType*>(id, ty));
