@@ -14,7 +14,7 @@
 #*.y
 *.cc
 #*.l
-
+*.metadata*
 
 
 # Packages #
