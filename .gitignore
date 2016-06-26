@@ -31,7 +31,6 @@
 *.zip
 
 .metadata/
-RemoteSystemsTempFiles/
 lab1-testsuite-larger/
 TestMyCpp
 TestTypeCheckerCPP
