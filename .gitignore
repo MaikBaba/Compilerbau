@@ -14,7 +14,7 @@
 #*.y
 *.cc
 #*.l
-
+.metadata*
 
 
 # Packages #
@@ -30,10 +30,9 @@
 *.tar
 *.zip
 
-.metadata/
+
 lab1-testsuite-larger/
 TestMyCpp
-TestTypeCheckerCPP
 
 # Logs and databases #
 ######################
