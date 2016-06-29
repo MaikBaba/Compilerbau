@@ -18,14 +18,13 @@
 #include <memory>
 
 using namespace std;
-using namespace llvm;
 
 class CodeGen : public Visitor
 {
 public:
 
     ~CodeGen();
-    Value* codegen(Visitable* v);
+    llvm::Value* codegen(Visitable* v);
 
 	Type* infer(Env T, Exp* e);
 
@@ -96,10 +95,10 @@ public:
 
 private:
         Env env_;
-        Value* val;
-        static unique_ptr<Module>∗ TheModule;
-        static IRBuilder<> Builder(getGlobalContext());
-        static map<string, Value∗> NamedValues;
+        llvm::Value* val;
+        static unique_ptr<llvm::Module>∗ TheModule;
+        static llvm::IRBuilder<> Builder(llVM::getGlobalContext());
+        static map<string, llvm::Value∗> NamedValues;
 
 };
 
