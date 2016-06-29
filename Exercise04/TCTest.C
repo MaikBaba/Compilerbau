@@ -33,7 +33,11 @@ int main(int argc, char ** argv)
       TypeChecker* tc = new TypeChecker();
       tc->typecheck(parse_tree);
 
+      Codegen* cg = new Codegen();
+      ir = cg->codegen(parse_tree);
+
       printf("OK");
+      ir->dump();
       } catch (TypeException* e) {
           printf("TYPE ERROR");
           std::cout<< e->what();
