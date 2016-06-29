@@ -6,6 +6,13 @@
  */
 #include "CodeGen.H"
 
+CodeGen::CodeGen(void) {
+	  TheModule = llvm::make_unique<llvm::Module>("my code", llvm::getGlobalContext());
+}
+
+CodeGen::~CodeGen() {
+
+}
 
 llvm::Value* CodeGen::codegen(Visitable* v) {
     v->accept(this);

@@ -14,6 +14,17 @@
 #include "FunType.H"
 #include "TypeException.H"
 #include <llvm-3.5/llvm/IR/Value.h>
+#include <llvm-3.5/llvm/IR/BasicBlock.h>
+#include <llvm-3.5/llvm/IR/Constants.h>
+#include <llvm-3.5/llvm/IR/DerivedTypes.h>
+#include <llvm-3.5/llvm/IR/Function.h>
+#include <llvm-3.5/llvm/IR/IRBuilder.h>
+#include <llvm-3.5/llvm/IR/LLVMContext.h>
+#include <llvm-3.5/llvm/IR/Module.h>
+#include <llvm-3.5/llvm/IR/Type.h>
+#include <llvm-3.5/llvm/IR/Verifier.h>
+#include <string>
+#include <vector>
 #include <map>
 #include <memory>
 
@@ -23,6 +34,7 @@ class CodeGen : public Visitor
 {
 public:
 
+	CodeGen();
     ~CodeGen();
     llvm::Value* codegen(Visitable* v);
 
@@ -97,7 +109,7 @@ private:
         Env env_;
         llvm::Value* val;
         static unique_ptr<llvm::Module>∗ TheModule;
-        static llvm::IRBuilder<> Builder(llVM::getGlobalContext());
+        static llvm::IRBuilder<> Builder(llvm::getGlobalContext());
         static map<string, llvm::Value∗> NamedValues;
 
 };
