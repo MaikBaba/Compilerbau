@@ -1,14 +1,14 @@
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+#include <llvm-3.5/llvm/ADT/APFloat.h>
+#include <llvm-3.5/llvm/ADT/STLExtras.h>
+#include <llvm-3.5/llvm/IR/BasicBlock.h>
+#include <llvm-3.5/llvm/IR/Constants.h>
+#include <llvm-3.5/llvm/IR/DerivedTypes.h>
+#include <llvm-3.5/llvm/IR/Function.h>
+#include <llvm-3.5/llvm/IR/IRBuilder.h>
+#include <llvm-3.5/llvm/IR/LLVMContext.h>
+#include <llvm-3.5/llvm/IR/Module.h>
+#include <llvm-3.5/llvm/IR/Type.h>
+#include <llvm-3.5/llvm/IR/Verifier.h>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -16,6 +16,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+//#include <llvm-3.8/llvm/IR/Value.h>
 
 using namespace llvm;
 
