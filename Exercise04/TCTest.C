@@ -36,7 +36,8 @@ int main(int argc, char ** argv)
       tc->typecheck(parse_tree);
       printf("TypeCheck OK");
 
-      cg->codegen(parse_tree);
+      auto iR = cg->codegen(parse_tree);
+      iR->dump()
 
       } catch (TypeException* e) {
           printf("TYPE ERROR");
