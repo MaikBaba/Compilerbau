@@ -1,21 +1,32 @@
-/*** BNFC-Generated Visitor Design Pattern Skeleton. ***/
-/* This implements the common visitor design pattern.
-   Note that this method uses Visitor-traversal of lists, so
-   List->accept() does NOT traverse the list. This allows different
-   algorithms to use context information differently. */
+/*
+ * CodeGen.C
+ *
+ *  Created on: Jun 28, 2016
+ *      Author: MB
+ */
+#include "CodeGen.H"
 
-#include "Skeleton.H"
+CodeGen::CodeGen(void) {
+	  TheModule = llvm::make_unique<llvm::Module>("my code", llvm::getGlobalContext());
+}
 
+CodeGen::~CodeGen() {
 
+}
 
-void Skeleton::visitProgram(Program* t) {} //abstract class
-void Skeleton::visitDef(Def* t) {} //abstract class
-void Skeleton::visitArg(Arg* t) {} //abstract class
-void Skeleton::visitStm(Stm* t) {} //abstract class
-void Skeleton::visitExp(Exp* t) {} //abstract class
-void Skeleton::visitType(Type* t) {} //abstract class
+llvm::Value* CodeGen::codegen(Visitable* v) {
+    v->accept(this);
+    return val;
+}
 
-void Skeleton::visitPDefs(PDefs *pdefs)
+void CodeGen::visitProgram(Program* t) {} //abstract class
+void CodeGen::visitDef(Def* t) {} //abstract class
+void CodeGen::visitArg(Arg* t) {} //abstract class
+void CodeGen::visitStm(Stm* t) {} //abstract class
+void CodeGen::visitExp(Exp* t) {} //abstract class
+void CodeGen::visitType(Type* t) {} //abstract class
+
+void CodeGen::visitPDefs(PDefs *pdefs)
 {
   /* Code For PDefs Goes Here */
 
@@ -23,7 +34,7 @@ void Skeleton::visitPDefs(PDefs *pdefs)
 
 }
 
-void Skeleton::visitDFun(DFun *dfun)
+void CodeGen::visitDFun(DFun *dfun)
 {
   /* Code For DFun Goes Here */
 
@@ -34,7 +45,7 @@ void Skeleton::visitDFun(DFun *dfun)
 
 }
 
-void Skeleton::visitADecl(ADecl *adecl)
+void CodeGen::visitADecl(ADecl *adecl)
 {
   /* Code For ADecl Goes Here */
 
@@ -43,7 +54,7 @@ void Skeleton::visitADecl(ADecl *adecl)
 
 }
 
-void Skeleton::visitSExp(SExp *sexp)
+void CodeGen::visitSExp(SExp *sexp)
 {
   /* Code For SExp Goes Here */
 
@@ -51,7 +62,7 @@ void Skeleton::visitSExp(SExp *sexp)
 
 }
 
-void Skeleton::visitSDecls(SDecls *sdecls)
+void CodeGen::visitSDecls(SDecls *sdecls)
 {
   /* Code For SDecls Goes Here */
 
@@ -60,7 +71,7 @@ void Skeleton::visitSDecls(SDecls *sdecls)
 
 }
 
-void Skeleton::visitSInit(SInit *sinit)
+void CodeGen::visitSInit(SInit *sinit)
 {
   /* Code For SInit Goes Here */
 
@@ -70,7 +81,7 @@ void Skeleton::visitSInit(SInit *sinit)
 
 }
 
-void Skeleton::visitSReturn(SReturn *sreturn)
+void CodeGen::visitSReturn(SReturn *sreturn)
 {
   /* Code For SReturn Goes Here */
 
@@ -78,14 +89,14 @@ void Skeleton::visitSReturn(SReturn *sreturn)
 
 }
 
-void Skeleton::visitSReturnVoid(SReturnVoid *sreturnvoid)
+void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid)
 {
   /* Code For SReturnVoid Goes Here */
 
 
 }
 
-void Skeleton::visitSWhile(SWhile *swhile)
+void CodeGen::visitSWhile(SWhile *swhile)
 {
   /* Code For SWhile Goes Here */
 
@@ -94,7 +105,7 @@ void Skeleton::visitSWhile(SWhile *swhile)
 
 }
 
-void Skeleton::visitSBlock(SBlock *sblock)
+void CodeGen::visitSBlock(SBlock *sblock)
 {
   /* Code For SBlock Goes Here */
 
@@ -102,7 +113,7 @@ void Skeleton::visitSBlock(SBlock *sblock)
 
 }
 
-void Skeleton::visitSIfElse(SIfElse *sifelse)
+void CodeGen::visitSIfElse(SIfElse *sifelse)
 {
   /* Code For SIfElse Goes Here */
 
@@ -112,21 +123,21 @@ void Skeleton::visitSIfElse(SIfElse *sifelse)
 
 }
 
-void Skeleton::visitETrue(ETrue *etrue)
+void CodeGen::visitETrue(ETrue *etrue)
 {
   /* Code For ETrue Goes Here */
 
 
 }
 
-void Skeleton::visitEFalse(EFalse *efalse)
+void CodeGen::visitEFalse(EFalse *efalse)
 {
   /* Code For EFalse Goes Here */
 
 
 }
 
-void Skeleton::visitEInt(EInt *eint)
+void CodeGen::visitEInt(EInt *eint)
 {
   /* Code For EInt Goes Here */
 
@@ -134,7 +145,7 @@ void Skeleton::visitEInt(EInt *eint)
 
 }
 
-void Skeleton::visitEDouble(EDouble *edouble)
+void CodeGen::visitEDouble(EDouble *edouble)
 {
   /* Code For EDouble Goes Here */
 
@@ -142,7 +153,7 @@ void Skeleton::visitEDouble(EDouble *edouble)
 
 }
 
-void Skeleton::visitEString(EString *estring)
+void CodeGen::visitEString(EString *estring)
 {
   /* Code For EString Goes Here */
 
@@ -150,7 +161,7 @@ void Skeleton::visitEString(EString *estring)
 
 }
 
-void Skeleton::visitEId(EId *eid)
+void CodeGen::visitEId(EId *eid)
 {
   /* Code For EId Goes Here */
 
@@ -158,7 +169,7 @@ void Skeleton::visitEId(EId *eid)
 
 }
 
-void Skeleton::visitEApp(EApp *eapp)
+void CodeGen::visitEApp(EApp *eapp)
 {
   /* Code For EApp Goes Here */
 
@@ -167,7 +178,7 @@ void Skeleton::visitEApp(EApp *eapp)
 
 }
 
-void Skeleton::visitEPIncr(EPIncr *epincr)
+void CodeGen::visitEPIncr(EPIncr *epincr)
 {
   /* Code For EPIncr Goes Here */
 
@@ -175,7 +186,7 @@ void Skeleton::visitEPIncr(EPIncr *epincr)
 
 }
 
-void Skeleton::visitEPDecr(EPDecr *epdecr)
+void CodeGen::visitEPDecr(EPDecr *epdecr)
 {
   /* Code For EPDecr Goes Here */
 
@@ -183,7 +194,7 @@ void Skeleton::visitEPDecr(EPDecr *epdecr)
 
 }
 
-void Skeleton::visitEIncr(EIncr *eincr)
+void CodeGen::visitEIncr(EIncr *eincr)
 {
   /* Code For EIncr Goes Here */
 
@@ -191,7 +202,7 @@ void Skeleton::visitEIncr(EIncr *eincr)
 
 }
 
-void Skeleton::visitEDecr(EDecr *edecr)
+void CodeGen::visitEDecr(EDecr *edecr)
 {
   /* Code For EDecr Goes Here */
 
@@ -199,7 +210,7 @@ void Skeleton::visitEDecr(EDecr *edecr)
 
 }
 
-void Skeleton::visitETimes(ETimes *etimes)
+void CodeGen::visitETimes(ETimes *etimes)
 {
   /* Code For ETimes Goes Here */
 
@@ -208,7 +219,7 @@ void Skeleton::visitETimes(ETimes *etimes)
 
 }
 
-void Skeleton::visitEDiv(EDiv *ediv)
+void CodeGen::visitEDiv(EDiv *ediv)
 {
   /* Code For EDiv Goes Here */
 
@@ -217,7 +228,7 @@ void Skeleton::visitEDiv(EDiv *ediv)
 
 }
 
-void Skeleton::visitEPlus(EPlus *eplus)
+void CodeGen::visitEPlus(EPlus *eplus)
 {
   /* Code For EPlus Goes Here */
 
@@ -226,7 +237,7 @@ void Skeleton::visitEPlus(EPlus *eplus)
 
 }
 
-void Skeleton::visitEMinus(EMinus *eminus)
+void CodeGen::visitEMinus(EMinus *eminus)
 {
   /* Code For EMinus Goes Here */
 
@@ -235,7 +246,7 @@ void Skeleton::visitEMinus(EMinus *eminus)
 
 }
 
-void Skeleton::visitELt(ELt *elt)
+void CodeGen::visitELt(ELt *elt)
 {
   /* Code For ELt Goes Here */
 
@@ -244,7 +255,7 @@ void Skeleton::visitELt(ELt *elt)
 
 }
 
-void Skeleton::visitEGt(EGt *egt)
+void CodeGen::visitEGt(EGt *egt)
 {
   /* Code For EGt Goes Here */
 
@@ -253,7 +264,7 @@ void Skeleton::visitEGt(EGt *egt)
 
 }
 
-void Skeleton::visitELtEq(ELtEq *elteq)
+void CodeGen::visitELtEq(ELtEq *elteq)
 {
   /* Code For ELtEq Goes Here */
 
@@ -262,7 +273,7 @@ void Skeleton::visitELtEq(ELtEq *elteq)
 
 }
 
-void Skeleton::visitEGtEq(EGtEq *egteq)
+void CodeGen::visitEGtEq(EGtEq *egteq)
 {
   /* Code For EGtEq Goes Here */
 
@@ -271,7 +282,7 @@ void Skeleton::visitEGtEq(EGtEq *egteq)
 
 }
 
-void Skeleton::visitEEq(EEq *eeq)
+void CodeGen::visitEEq(EEq *eeq)
 {
   /* Code For EEq Goes Here */
 
@@ -280,7 +291,7 @@ void Skeleton::visitEEq(EEq *eeq)
 
 }
 
-void Skeleton::visitENEq(ENEq *eneq)
+void CodeGen::visitENEq(ENEq *eneq)
 {
   /* Code For ENEq Goes Here */
 
@@ -289,7 +300,7 @@ void Skeleton::visitENEq(ENEq *eneq)
 
 }
 
-void Skeleton::visitEAnd(EAnd *eand)
+void CodeGen::visitEAnd(EAnd *eand)
 {
   /* Code For EAnd Goes Here */
 
@@ -298,7 +309,7 @@ void Skeleton::visitEAnd(EAnd *eand)
 
 }
 
-void Skeleton::visitEOr(EOr *eor)
+void CodeGen::visitEOr(EOr *eor)
 {
   /* Code For EOr Goes Here */
 
@@ -307,7 +318,7 @@ void Skeleton::visitEOr(EOr *eor)
 
 }
 
-void Skeleton::visitEAss(EAss *eass)
+void CodeGen::visitEAss(EAss *eass)
 {
   /* Code For EAss Goes Here */
 
@@ -316,7 +327,7 @@ void Skeleton::visitEAss(EAss *eass)
 
 }
 
-void Skeleton::visitETyped(ETyped *etyped)
+void CodeGen::visitETyped(ETyped *etyped)
 {
   /* Code For ETyped Goes Here */
 
@@ -325,35 +336,35 @@ void Skeleton::visitETyped(ETyped *etyped)
 
 }
 
-void Skeleton::visitType_bool(Type_bool *type_bool)
+void CodeGen::visitType_bool(Type_bool *type_bool)
 {
   /* Code For Type_bool Goes Here */
 
 
 }
 
-void Skeleton::visitType_int(Type_int *type_int)
+void CodeGen::visitType_int(Type_int *type_int)
 {
   /* Code For Type_int Goes Here */
 
 
 }
 
-void Skeleton::visitType_double(Type_double *type_double)
+void CodeGen::visitType_double(Type_double *type_double)
 {
   /* Code For Type_double Goes Here */
 
 
 }
 
-void Skeleton::visitType_void(Type_void *type_void)
+void CodeGen::visitType_void(Type_void *type_void)
 {
   /* Code For Type_void Goes Here */
 
 
 }
 
-void Skeleton::visitType_string(Type_string *type_string)
+void CodeGen::visitType_string(Type_string *type_string)
 {
   /* Code For Type_string Goes Here */
 
@@ -361,7 +372,7 @@ void Skeleton::visitType_string(Type_string *type_string)
 }
 
 
-void Skeleton::visitListDef(ListDef* listdef)
+void CodeGen::visitListDef(ListDef* listdef)
 {
   for (ListDef::iterator i = listdef->begin() ; i != listdef->end() ; ++i)
   {
@@ -369,7 +380,7 @@ void Skeleton::visitListDef(ListDef* listdef)
   }
 }
 
-void Skeleton::visitListArg(ListArg* listarg)
+void CodeGen::visitListArg(ListArg* listarg)
 {
   for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
   {
@@ -377,7 +388,7 @@ void Skeleton::visitListArg(ListArg* listarg)
   }
 }
 
-void Skeleton::visitListStm(ListStm* liststm)
+void CodeGen::visitListStm(ListStm* liststm)
 {
   for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
   {
@@ -385,7 +396,7 @@ void Skeleton::visitListStm(ListStm* liststm)
   }
 }
 
-void Skeleton::visitListExp(ListExp* listexp)
+void CodeGen::visitListExp(ListExp* listexp)
 {
   for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
   {
@@ -393,7 +404,7 @@ void Skeleton::visitListExp(ListExp* listexp)
   }
 }
 
-void Skeleton::visitListId(ListId* listid)
+void CodeGen::visitListId(ListId* listid)
 {
   for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
   {
@@ -402,32 +413,32 @@ void Skeleton::visitListId(ListId* listid)
 }
 
 
-void Skeleton::visitId(Id x)
+void CodeGen::visitId(Id x)
 {
   /* Code for Id Goes Here */
 }
 
-void Skeleton::visitInteger(Integer x)
+void CodeGen::visitInteger(Integer x)
 {
   /* Code for Integer Goes Here */
 }
 
-void Skeleton::visitChar(Char x)
+void CodeGen::visitChar(Char x)
 {
   /* Code for Char Goes Here */
 }
 
-void Skeleton::visitDouble(Double x)
+void CodeGen::visitDouble(Double x)
 {
   /* Code for Double Goes Here */
 }
 
-void Skeleton::visitString(String x)
+void CodeGen::visitString(String x)
 {
   /* Code for String Goes Here */
 }
 
-void Skeleton::visitIdent(Ident x)
+void CodeGen::visitIdent(Ident x)
 {
   /* Code for Ident Goes Here */
 }
