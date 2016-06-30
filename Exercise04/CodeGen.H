@@ -108,6 +108,7 @@ public:
 private:
         Env env_;
         llvm::Value* val;
+        static llvm::LLVMContext TheContext;
         static unique_ptr<llvm::Module>∗ TheModule;
         static llvm::IRBuilder<> Builder(llvm::getGlobalContext());
         static map<string, llvm::Value∗> NamedValues;
