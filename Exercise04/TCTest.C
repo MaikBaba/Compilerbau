@@ -10,6 +10,7 @@
 #include "Absyn.H"
 #include "TypeChecker.H"
 #include "TypeException.H"
+#include "CodeGen.H"
 
 int main(int argc, char ** argv)
 {
@@ -31,9 +32,13 @@ int main(int argc, char ** argv)
     try {
 
       TypeChecker* tc = new TypeChecker();
+      CodeGen* cg = new CodeGen();
       tc->typecheck(parse_tree);
+      printf("TypeCheck OK");
 
-      printf("OK");
+      auto iR = cg->codegen(parse_tree);
+      iR->dump();
+
       } catch (TypeException* e) {
           printf("TYPE ERROR");
           std::cout<< e->what();

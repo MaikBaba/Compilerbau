@@ -8,14 +8,25 @@
 #ifndef CODEGEN_H_
 #define CODEGEN_H_
 
-#include <llvm-3.5/llvm/IR/Value.h>
-
 #include "Absyn.H"
-
 #include "Env.H"
 #include "BasicType.H"
 #include "FunType.H"
 #include "TypeException.H"
+#include <llvm/IR/Value.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Verifier.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
 
 using namespace std;
 
@@ -23,6 +34,7 @@ class CodeGen : public Visitor
 {
 public:
 
+	CodeGen();
     ~CodeGen();
     llvm::Value* codegen(Visitable* v);
 
@@ -93,12 +105,13 @@ public:
 	void visitString(String x);
 	void visitIdent(Ident x);
 
-
 private:
         Env env_;
         llvm::Value* val;
+        static unique_ptr<llvm::Module>∗ TheModule;
+        static llvm::IRBuilder<> Builder(llvm::getGlobalContext());
+        static map<string, llvm::Value∗> NamedValues;
 
 };
-
 
 #endif /* CODEGEN_H_ */
