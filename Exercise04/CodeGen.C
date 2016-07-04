@@ -1,3 +1,4 @@
+
 /*
  * CodeGen.C
  *
@@ -6,8 +7,10 @@
  */
 #include "CodeGen.H"
 
-CodeGen::CodeGen(void) {
+CodeGen::CodeGen() {
 	  TheModule = llvm::make_unique<llvm::Module>("my code", llvm::getGlobalContext());
+	  builder = llvm::IRBuilder<>(llvm::getGlobalContext());
+	  val = nullptr;
 }
 
 CodeGen::~CodeGen() {
@@ -442,6 +445,3 @@ void CodeGen::visitIdent(Ident x)
 {
   /* Code for Ident Goes Here */
 }
-
-
-

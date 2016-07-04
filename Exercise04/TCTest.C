@@ -33,6 +33,7 @@ int main(int argc, char ** argv)
 
       TypeChecker* tc = new TypeChecker();
       CodeGen* cg = new CodeGen();
+
       tc->typecheck(parse_tree);
       printf("TypeCheck OK");
 
