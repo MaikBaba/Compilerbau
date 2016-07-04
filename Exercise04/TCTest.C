@@ -10,7 +10,7 @@
 #include "Absyn.H"
 #include "TypeChecker.H"
 #include "TypeException.H"
-#include "Codegen.H"
+#include "CodeGen.H"
 
 int main(int argc, char ** argv)
 {
