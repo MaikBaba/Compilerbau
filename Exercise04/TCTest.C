@@ -32,12 +32,12 @@ int main(int argc, char ** argv)
     try {
 
       TypeChecker* tc = new TypeChecker();
-      Codegen* cg = new Codegen();
+      CodeGen* cg = new CodeGen();
       tc->typecheck(parse_tree);
       printf("TypeCheck OK");
 
       auto iR = cg->codegen(parse_tree);
-      iR->dump()
+      iR->dump();
 
       } catch (TypeException* e) {
           printf("TYPE ERROR");

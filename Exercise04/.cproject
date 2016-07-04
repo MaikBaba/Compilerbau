@@ -22,8 +22,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.464629782" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.782632212" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.995127853" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Exercise04/llvm-3.5/llvm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Exercise04/llvm-3.5/llvm-c}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/llvm35/3.5.1/lib"/>
+									<listOptionValue builtIn="false" value="/usr/lib/llvm-3.8/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1951887892" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -88,6 +88,8 @@
 			<resource resourceType="PROJECT" workspacePath="/Exercise04"/>
 		</configuration>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.906982005;cdt.managedbuild.toolchain.gnu.base.906982005.820345679;cdt.managedbuild.tool.gnu.cpp.compiler.base.782632212;cdt.managedbuild.tool.gnu.cpp.compiler.input.1951887892">
