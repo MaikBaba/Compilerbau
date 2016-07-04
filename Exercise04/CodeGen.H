@@ -14,6 +14,7 @@
 #include "FunType.H"
 #include "TypeException.H"
 #include <llvm/IR/Value.h>
+#include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -108,10 +109,9 @@ public:
 private:
         Env env_;
         llvm::Value* val;
-        static unique_ptr<llvm::Module>∗ TheModule;
-        static llvm::IRBuilder<> Builder(llvm::getGlobalContext());
-        static map<string, llvm::Value∗> NamedValues;
-
+        unique_ptr<llvm::Module>* TheModule; //wird in Konstruktor initialisiert
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
 };
 
 #endif /* CODEGEN_H_ */
