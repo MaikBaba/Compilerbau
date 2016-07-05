@@ -109,7 +109,8 @@ public:
 private:
         Env env_;
         llvm::Value* val;
-        unique_ptr<llvm::Module>* TheModule; //wird in Konstruktor initialisiert
+        llvm::LLVMContext TheContext;
+        llvm::Module *TheModule; //wird in Konstruktor initialisiert
         llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
         map<string, llvm::Value*> NamedValues;
 };

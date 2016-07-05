@@ -26,13 +26,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.464629782" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.782632212" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.995127853" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-<<<<<<< Updated upstream
-									<listOptionValue builtIn="false" value="/usr/lib/llvm-3.8/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/Cellar/llvm35/3.5.1/lib"/>
-=======
 									<listOptionValue builtIn="false" value="/usr/local/Cellar/llvm35/3.5.1/lib"/>
 									<listOptionValue builtIn="false" value="/usr/local/lib/llvm-3.8/include"/>
->>>>>>> Stashed changes
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1951887892" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
