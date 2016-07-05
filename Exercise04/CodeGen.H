@@ -13,19 +13,17 @@
 #include "BasicType.H"
 #include "FunType.H"
 #include "TypeException.H"
-#include <llvm-3.5/llvm/IR/Value.h>
-#include <llvm-3.5/llvm/IR/BasicBlock.h>
-#include <llvm-3.5/llvm/IR/Constants.h>
-#include <llvm-3.5/llvm/IR/DerivedTypes.h>
-#include <llvm-3.5/llvm/IR/Function.h>
-#include <llvm-3.5/llvm/IR/IRBuilder.h>
-#include <llvm-3.5/llvm/IR/LLVMContext.h>
-#include <llvm-3.5/llvm/IR/Module.h>
-#include <llvm-3.5/llvm/IR/Type.h>
-#include <llvm-3.5/llvm/IR/Verifier.h>
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
+#include <llvm/IR/Value.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Verifier.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -111,10 +109,12 @@ public:
 private:
         Env env_;
         llvm::Value* val;
-        static unique_ptr<llvm::Module>∗ TheModule;
-        static llvm::IRBuilder<> Builder(llvm::getGlobalContext());
-        static map<string, llvm::Value∗> NamedValues;
-
+        llvm::LLVMContext TheContext;
+        llvm::Module *TheModule; //wird in Konstruktor initialisiert
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
+        llvm::BasicBlock* entryBlock;
 };
 
 #endif /* CODEGEN_H_ */
+	

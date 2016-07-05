@@ -48,11 +48,12 @@ TypeException.o: TypeException.C TypeException.H
 	${CC} ${CCFLAGS} -c TypeException.C
 
 CodeGen.o: CodeGen.C CodeGen.H
-	${CC} ${CCFLAGS} -c CodeGen.H
+	${CC} ${CCFLAGS} -c -I /usr/local/lib/llvm-3.8/include CodeGen.H
 	
 Env.o: Env.C Env.H Absyn.H FunType.H TypeException.H
 	${CC} ${CCFLAGS} -c Env.C
 
 TCTest.o: TCTest.C Parser.H Printer.H Absyn.H TypeChecker.H TypeException.H CodeGen.H
-	${CC} ${CCFLAGS} -c -I /usr/lib/llvm-3.8/include TCTest.C
+	${CC} ${CCFLAGS} -c -I /usr/local/lib/llvm-3.8/include -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS TCTest.C
+
 
