@@ -36,13 +36,27 @@ void CodeGen::visitPDefs(PDefs *pdefs)
 
 void CodeGen::visitDFun(DFun *dfun)
 {
-  /* Code For DFun Goes Here */
+	llvm::Function∗ TheFunction = TheModule->getFunction(dfun->id_);
 
-  dfun->type_->accept(this);
-  visitId(dfun->id_);
-  dfun->listarg_->accept(this);
-  dfun->liststm_->accept(this);
+	if(!TheFunction) {
+		TheFunction = codegen(dfun->listarg_);
+	}
 
+	llvm::BasicBlock∗ BB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", TheFunction);
+
+	Builder.SetInsertPoint(BB);
+
+	NamedValues.clear();
+	for(auto &Arg : TheFunction−>args()) {
+		NamedValues[Arg.getName()] = &Arg;
+	}
+
+	if(llvm::Value∗ RetVal = codegen(dfun->type_)) {
+		Builder.CreateRet(RetVal);
+		llvm::verifyFunction(∗TheFunction);
+	}
+
+	TheFunction−>eraseFromParent();
 }
 
 void CodeGen::visitADecl(ADecl *adecl)
