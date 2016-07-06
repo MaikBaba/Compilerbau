@@ -4,33 +4,15 @@
 /* pretty-print the result.                                                 */
 /*                                                                          */
 /****************************************************************************/
-#include <iostream>
+#include <stdio.h>
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
-#include "CodeGen.H"
-
-#include <llvm/IR/Value.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/BasicBlock.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Verifier.h>
-
-
-static llvm::LLVMContext TheContext;
-static llvm::IRBuilder<> Builder(TheContext);
-static llvm::Module* TheModule;
 
 int main(int argc, char ** argv)
 {
   FILE *input;
-  if (argc > 1)
+  if (argc > 1) 
   {
     input = fopen(argv[1], "r");
     if (!input)
@@ -41,15 +23,18 @@ int main(int argc, char ** argv)
   }
   else input = stdin;
   /* The default entry point is used. For other options see Parser.H */
-  Program* parse_tree = pProgram(input);
+  Program *parse_tree = pProgram(input);
   if (parse_tree)
   {
-	  TheModule = new llvm::Module("my code", TheContext);
-		CodeGen* cg = new CodeGen(&TheContext, TheModule, &Builder);
-		cg->codegen(parse_tree);
-
-		printf("OK");
-		return 0;
+    printf("\nParse Succesful!\n");
+    printf("\n[Abstract Syntax]\n");
+    ShowAbsyn *s = new ShowAbsyn();
+    printf("%s\n\n", s->show(parse_tree));
+    printf("[Linearized Tree]\n");
+    PrintAbsyn *p = new PrintAbsyn();
+    printf("%s\n\n", p->print(parse_tree));
+    return 0;
   }
   return 1;
 }
+

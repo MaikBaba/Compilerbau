@@ -39,9 +39,9 @@ Printer.o: Printer.C Printer.H Absyn.H
 	${CC} ${CCFLAGS} -c Printer.C
 
 CodeGen.o: CodeGen.C CodeGen.H Absyn.H
-	${CC} ${CCFLAGS} -c CodeGen.C
+	${CC} ${CCFLAGS} -c CodeGen.C -lllvm
 
 CGTest.o: CGTest.C Parser.H Printer.H Absyn.H CodeGen.H
-	${CC} ${CCFLAGS} -c CGTest.C
+	${CC} ${CCFLAGS} -c CGTest.C -lllvm
 
 

@@ -7,11 +7,10 @@
  */
 #include "CodeGen.H"
 
-CodeGen::CodeGen(){
-	TheContext = llvm::getGlobalContext();
-	TheModule = new llvm::Module("my code", TheContext);
-	builder = llvm::IRBuilder<> ();
-	 val = nullptr;
+CodeGen::CodeGen(llvm::LLVMContext* con, llvm::Module* mod, llvm::IRBuilder<>* bui) {
+	TheContext = con;
+	TheModule = mod;
+	TheBuilder = bui;
 }
 
 CodeGen::~CodeGen() {
@@ -61,8 +60,8 @@ void CodeGen::visitListDef(ListDef* listdef)
 			}
 			// Baue llvm Funktionstyp auf
 			// Alle Typen sind llvm doubles
-			vector<llvm::Type*> protoArgs(proto->listarg_->size(), llvm::Type::getDoubleTy(TheContext));
-			llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), protoArgs, false);
+			vector<llvm::Type*> protoArgs(proto->listarg_->size(), llvm::Type::getDoubleTy(*TheContext));
+			llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm::Type::getDoubleTy(*TheContext), protoArgs, false);
 
 			// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 			llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, proto->id_, TheModule);
@@ -92,8 +91,8 @@ void CodeGen::visitDFun(DFun *dfun) {
 	/* generiere einen einzigen entry block
 	 * Branching statements müssen selbst Blöcke generieren
 	 * und den insert point ändern */
-	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
-	builder.SetInsertPoint(entryBlock);
+	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(*TheContext, "entry", TheFunction);
+	 TheBuilder->SetInsertPoint(entryBlock);
 
 	// Füge Funktionsargumente in env_/NamedValues ein
 	// TODO Könnte man das auch weiter rekursiv machen?
@@ -105,7 +104,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// rekursiver Aufruf kann den Builder Insert Point verschieben
 	// => auf aktuellen Block setzen
-	builder.SetInsertPoint(entryBlock);
+	TheBuilder->SetInsertPoint(entryBlock);
 
 	// generiere return statement
 	// Falls der Insertpoint bei rekursivem Aufruf auf einen anderen Block gesetzt wurde,
@@ -180,7 +179,7 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 
 	// Füge non-void return statement ein
 	// wichtig: darf Insertpoint nicht verändern!
-	val = builder.CreateRet(val);
+	val =  TheBuilder->CreateRet(val);
 
 	std::cout << "Leave visitSReturn" << std::endl;
 }
@@ -217,37 +216,37 @@ void CodeGen::visitSBlock(SBlock *sblock)
 void CodeGen::visitSIfElse(SIfElse *sifelse)
 {
 	// Hole die Funktion, für die wir gerade Code generieren
-	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
+	llvm::Function* currentFun =  TheBuilder->GetInsertBlock()->getParent();
 
 	// Basic Blocks für then, else, merge in der aktuellen Funktion anlegen und einfügen
-	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(TheContext, "thenBlock", currentFun);
-	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(TheContext, "elsefBlock", currentFun);
-	llvm::BasicBlock *mergeBB =llvm::BasicBlock::Create(TheContext, "mergeBlock", currentFun);
+	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(*TheContext, "thenBlock", currentFun);
+	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(*TheContext, "elsefBlock", currentFun);
+	llvm::BasicBlock *mergeBB =llvm::BasicBlock::Create(*TheContext, "mergeBlock", currentFun);
 	/*** Einzelteile generieren ***/
 
 	// Condition-Expression (gehört noch zu entry block)
 	sifelse->exp_->accept(this);
 	llvm::Value *condExprVal = val;
 	// TODO if (!val) ?
-	condExprVal = builder.CreateFCmpONE(condExprVal, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
+	condExprVal = TheBuilder->CreateFCmpONE(condExprVal, llvm::ConstantFP::get(*TheContext, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
 	// Entry block mit Conditional-Branch abschließen
-	builder.CreateCondBr(condExprVal, thenBB, elseBB);
+	TheBuilder->CreateCondBr(condExprVal, thenBB, elseBB);
 
 	// Then-Statement
-	builder.SetInsertPoint(thenBB);
+	TheBuilder->SetInsertPoint(thenBB);
 	sifelse->stm_1->accept(this);
 	llvm::Value *thenVal = val; // generierten Value für Phi merken
-	builder.CreateBr(mergeBB); //then-Block mit Sprung in merge-Block abschließen
+	TheBuilder->CreateBr(mergeBB); //then-Block mit Sprung in merge-Block abschließen
 
 	// Else-Statement
-	builder.SetInsertPoint(elseBB);
+	TheBuilder->SetInsertPoint(elseBB);
 	sifelse->stm_2->accept(this);
 	llvm::Value *elseVal = val; // generierten Value für Phi merken
-	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
+	TheBuilder->CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
 
 	// merge-Block
-	builder.SetInsertPoint(mergeBB);
-	llvm::PHINode *phiStatement = builder.CreatePHI(llvm::Type::getDoubleTy(TheContext), 2, "merge");
+	TheBuilder->SetInsertPoint(mergeBB);
+	llvm::PHINode *phiStatement = TheBuilder->CreatePHI(llvm::Type::getDoubleTy(*TheContext), 2, "merge");
 	phiStatement->addIncoming(thenVal, thenBB); //wenn wir aus then-Block kommen, übernimm thenValue
 	phiStatement->addIncoming(elseVal, elseBB); //wenn wir aus else-Block kommen, übernimm elseValue
 }

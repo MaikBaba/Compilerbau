@@ -15,9 +15,9 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <string>
@@ -32,7 +32,7 @@ class CodeGen : public Visitor
 {
 public:
 
-	CodeGen();
+	CodeGen(llvm::LLVMContext* con, llvm::Module* mod, llvm::IRBuilder<>* build);
     ~CodeGen();
     llvm::Value* codegen(Visitable* v);
 
@@ -98,10 +98,10 @@ public:
 
 private:
         llvm::Value* val;
-        llvm::LLVMContext TheContext;
-        llvm::Module *TheModule; //wird in Konstruktor initialisiert
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
+        std::map<std::string, llvm::Value *> NamedValues;
+        llvm::LLVMContext* TheContext;
+        llvm::Module* TheModule;
+        llvm::IRBuilder<>* TheBuilder;
 };
 
 #endif /* CODEGEN_H_ */
