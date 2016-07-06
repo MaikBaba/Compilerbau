@@ -9,7 +9,7 @@
 CodeGen::CodeGen(void) :
 		builder(llvm::getGlobalContext()),
 		context(llvm::getGlobalContext()),
-		TheModule("my code", context) {
+		TheModule("mycode", llvm::getGlobalContext()) {
 	val = nullptr;
 }
 

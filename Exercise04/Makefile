@@ -74,7 +74,7 @@ CXXSRCFILES := $(shell find . -name "*.C")
 CXXOBJFILES := $(patsubst %.C,%.o,$(CXXSRCFILES))
 CXXDEPFILES := $(patsubst %.C,%.d,$(CXXSRCFILES))
 
-SRCFILES := $(CSRCFILES) $(CXXSRCFILES) Lexer.C Parser.C
+SRCFILES := $(CSRCFILES) $(CXXSRCFILES)
 OBJFILES := $(COBJFILES) $(CXXOBJFILES)
 DEPFILES := $(CDEPFILES) $(CXXDEPFILES)
 
@@ -135,6 +135,8 @@ Lexer.C: CPP.l
 
 Parser.C: CPP.y
 	${BISON} CPP.y -o Parser.C
+
+parser: Lexer.C Parser.C
 
 clean:
 	-@$(RM) -f $(wildcard $(OBJFILES_DEBUG) $(OBJFILES_RELEASE) $(DEPFILES_DEBUG) $(DEPFILES_RELEASE) $(PROJNAME_DEBUG) $(PROJNAME_RELEASE)) Lexer.C Parser.C && \

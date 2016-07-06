@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
   if (parse_tree != nullptr)
   {
 
-	CodeGen cg;
+	  CodeGen cg;
 	cg.codegen(parse_tree);
 
 	printf("OK");
