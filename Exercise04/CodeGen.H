@@ -47,6 +47,7 @@ public:
     virtual ~CodeGen() = default;
 
     llvm::Value* codegen(Visitable* v);
+    void printGeneratedIR();
 
 	Type* infer(Env T, Exp* e);
 

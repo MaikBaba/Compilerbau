@@ -333,6 +333,10 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 
 }
 
+void CodeGen::printGeneratedIR() {
+	TheModule.dump();
+}
+
 void CodeGen::visitELt(ELt *elt) {
 	/* Code For ELt Goes Here */
 
