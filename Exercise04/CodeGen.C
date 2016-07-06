@@ -7,11 +7,10 @@
  */
 #include "CodeGen.H"
 
-CodeGen::CodeGen() {
-	TheContext = llvm::getGlobalContext();
-	TheModule = llvm::Module("my code", TheContext);
-	builder = llvm::IRBuilder<>(TheContext);
-	val = nullptr;
+CodeGen::CodeGen(){
+	 module = new llvm::Module("top", llvm::getGlobalContext());
+	 val = nullptr;
+	 block = nullptr;
 }
 
 CodeGen::~CodeGen() {
@@ -44,77 +43,19 @@ void CodeGen::visitPDefs(PDefs *pdefs)
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef)
 {
-		for (ListDef::iterator proto_it = listdef->begin(); proto_it != listdef->end(); proto_it++) {
-			DFun* proto = (DFun*) *proto_it;
-
-			// Überspringe diese Definition, falls schon in Modul vorhanden
-			if (! TheModule->getFunction(proto->id_))
-				continue;
-
-			// Baue llvm Funktionstyp auf
-			// Alle Typen sind llvm doubles
-			vector<llvm::Type*> protoArgs(proto->listarg_->size(), llvm::Type::getDoubleTy(TheContext));
-			llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), protoArgs, false);
-
-			// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
-			llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, proto->id_, TheModule);
-
-			// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
-			ListArg::iterator listarg = proto->listarg_->begin();
-			for(auto &arg : llvm_fun->args()) {
-				arg.setName(((ADecl*) *listarg)->id_);
-				listarg++;
-			}
-		}
+	std::cout << "visitListDef" << std::endl;
 }
 
 /* Funktionsdefinition besuchen*/
 void CodeGen::visitDFun(DFun *dfun)
 {
-	// Überspringen, wenn für diese Funktion schon Code generiert wurde
-	llvm::Function *TheFunction = TheModule->getFunction(dfun->id_);
-	if (TheFunction) {
-		return;
-	}
-
-	/* generiere einen einzigen entry block
-	 * Branching statements müssen selbst Blöcke generieren
-	 * und den insert point ändern */
-	entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
-	builder.SetInsertPoint(entryBlock);
-
-	// Füge Funktionsargumente in env_/NamedValues ein
-	// TODO Könnte man das auch weiter rekursiv machen?
-	//      dfun->listarg_->accept(this); und dann in visitListArg eintragen
-
-
-	// generiere Code für die Statements/Body
-	val = dfun->liststm_->accept(this);
-
-	//generiere return statement
-	dfun->type_->accept(this);
-
-
+	std::cout << "visitDFun" << std::endl;
 }
 
 /* Funktionsaufruf besuchen */
 void CodeGen::visitEApp(EApp *eapp)
 {
-	llvm::BasicBlock∗ BB = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", TheFunction);
-
-	Builder.SetInsertPoint(BB);
-
-	NamedValues.clear();
-	for(auto &Arg : TheFunction−>args()) {
-		NamedValues[Arg.getName()] = &Arg;
-	}
-
-	if(llvm::Value∗ RetVal = codegen(dfun->type_)) {
-		Builder.CreateRet(RetVal);
-		llvm::verifyFunction(∗TheFunction);
-	}
-
-	TheFunction−>eraseFromParent();
+	std::cout << "visitEApp" << std::endl;
 }
 
 void CodeGen::visitADecl(ADecl *adecl)
@@ -124,6 +65,7 @@ void CodeGen::visitADecl(ADecl *adecl)
 	adecl->type_->accept(this);
 	visitId(adecl->id_);
 
+	std::cout << "visitADecl" << std::endl;
 }
 
 void CodeGen::visitSExp(SExp *sexp)
@@ -132,6 +74,7 @@ void CodeGen::visitSExp(SExp *sexp)
 
 	sexp->exp_->accept(this);
 
+	std::cout << "visitSExp" << std::endl;
 }
 
 void CodeGen::visitSDecls(SDecls *sdecls)
@@ -141,6 +84,7 @@ void CodeGen::visitSDecls(SDecls *sdecls)
 	sdecls->type_->accept(this);
 	sdecls->listid_->accept(this);
 
+	std::cout << "visitSDecls" << std::endl;
 }
 
 void CodeGen::visitSInit(SInit *sinit)
@@ -151,23 +95,21 @@ void CodeGen::visitSInit(SInit *sinit)
 	visitId(sinit->id_);
 	sinit->exp_->accept(this);
 
+	std::cout << "visitSInit" << std::endl;
 }
 
 void CodeGen::visitSReturn(SReturn *sreturn)
 {
 	/* Code For SReturn Goes Here */
 
-	// Füge non-void return statement ein
-	// (in de
-	builder
-
+	std::cout << "visitSReturn" << std::endl;
 }
 
 void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid)
 {
 	/* Code For SReturnVoid Goes Here */
 
-
+	std::cout << "visitSReturnVoid" << std::endl;
 }
 
 void CodeGen::visitSWhile(SWhile *swhile)
@@ -177,6 +119,7 @@ void CodeGen::visitSWhile(SWhile *swhile)
 	swhile->exp_->accept(this);
 	swhile->stm_->accept(this);
 
+	std::cout << "visitSWhile" << std::endl;
 }
 
 void CodeGen::visitSBlock(SBlock *sblock)
@@ -185,22 +128,17 @@ void CodeGen::visitSBlock(SBlock *sblock)
 
 	sblock->liststm_->accept(this);
 
+	std::cout << "visitSBlock" << std::endl;
 }
 
 void CodeGen::visitSIfElse(SIfElse *sifelse)
 {
 	/* Code For SIfElse Goes Here */
 
-	// Condition-Expression besuchen, Value/Variable merken und vergleichen
-	sifelse->exp_->accept(this);
-	llvm::Value *condExprVal = val;
-	// TODO if (!val) ?
-	condExprVal = builder.CreateFCmpONE(condExprVal, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
-
-
 	sifelse->stm_1->accept(this);
 	sifelse->stm_2->accept(this);
 
+	std::cout << "visitSIfElse" << std::endl;
 }
 
 void CodeGen::visitETrue(ETrue *etrue)
@@ -445,12 +383,12 @@ void CodeGen::visitType_string(Type_string *type_string)
 
 void CodeGen::visitListArg(ListArg* listarg)
 {
-//	for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
-//	{
-//		(*i)->accept(this);
-//	}
+	for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
+	{
+		(*i)->accept(this);
+	}
 
-	// TODO Funktionsargumente in NamedValues eintragen?
+	std::cout << "visitListArg" << std::endl;
 }
 
 void CodeGen::visitListStm(ListStm* liststm)
@@ -459,6 +397,8 @@ void CodeGen::visitListStm(ListStm* liststm)
 	{
 		(*i)->accept(this);
 	}
+
+	std::cout << "visitListStm" << std::endl;
 }
 
 void CodeGen::visitListExp(ListExp* listexp)
@@ -467,6 +407,8 @@ void CodeGen::visitListExp(ListExp* listexp)
 	{
 		(*i)->accept(this);
 	}
+
+	std::cout << "visitListExp" << std::endl;
 }
 
 void CodeGen::visitListId(ListId* listid)
@@ -475,6 +417,8 @@ void CodeGen::visitListId(ListId* listid)
 	{
 		visitId(*i) ;
 	}
+
+	std::cout << "visitListId" << std::endl;
 }
 
 

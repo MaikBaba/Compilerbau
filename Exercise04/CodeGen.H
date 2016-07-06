@@ -9,10 +9,6 @@
 #define CODEGEN_H_
 
 #include "Absyn.H"
-#include "Env.H"
-#include "BasicType.H"
-#include "FunType.H"
-#include "TypeException.H"
 #include <llvm/IR/Value.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/BasicBlock.h>
@@ -28,8 +24,7 @@
 #include <vector>
 #include <map>
 #include <memory>
-
-using namespace std;
+#include <iostream>
 
 class CodeGen : public Visitor
 {
@@ -38,13 +33,6 @@ public:
 	CodeGen();
     ~CodeGen();
     llvm::Value* codegen(Visitable* v);
-
-	Type* infer(Env T, Exp* e);
-
-	void check(Env T, Exp* e, Type* t);
-	void check(Env T, Stm* s);
-	void check(Env T, Def* d);
-	void check(Program* p);
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
@@ -107,13 +95,11 @@ public:
 	void visitIdent(Ident x);
 
 private:
-        Env env_;
-        llvm::Value* val;
-        llvm::LLVMContext TheContext;
-        llvm::Module *TheModule; //wird in Konstruktor initialisiert
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
-        llvm::BasicBlock* entryBlock;
+	llvm::Module* module;
+	//llvm::IRBuilder<> builder;
+	std::map<std::string, llvm::Value *> NamedValues;
+    llvm::BasicBlock* block;
+    llvm::Value* val;
 };
 
 #endif /* CODEGEN_H_ */
