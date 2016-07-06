@@ -11,6 +11,7 @@ CodeGen::CodeGen(void) :
 		context(llvm::getGlobalContext()),
 		TheModule("mycode", llvm::getGlobalContext()) {
 	val = nullptr;
+
 }
 
 llvm::Value* CodeGen::codegen(Visitable* v) {
@@ -43,6 +44,9 @@ void CodeGen::visitPDefs(PDefs *pdefs) {
 
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef) {
+
+	std::cout << "Enter visitListDef" << std::endl;
+
 	for (ListDef::iterator proto_it = listdef->begin();
 			proto_it != listdef->end(); proto_it++) {
 		DFun* proto = (DFun*) *proto_it;
@@ -74,16 +78,19 @@ void CodeGen::visitListDef(ListDef* listdef) {
 			arg.setName(((ADecl*) *listarg)->id_);
 			listarg++;
 		}
+		std::cout << "Leave visitListDef" << std::endl;
 	}
 }
 
 /* Funktionsdefinition besuchen*/
 void CodeGen::visitDFun(DFun *dfun) {
 
+	std::cout << "Enter visitDFun" << std::endl;
+
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
 	// TODO Polymorphe Funktionen
-	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
-	if (!TheFunction)
+	llvm::Function *TheFunction = TheModule->getFunction(dfun->id_);
+	if (TheFunction)
 		return;
 
 	/* generiere einen einzigen entry block
@@ -115,11 +122,13 @@ void CodeGen::visitDFun(DFun *dfun) {
 	// fertige Funktion als "Rückgabewert" speichern
 	val = TheFunction;
 
+	std::cout << "Leave visitDFun" << std::endl;
 }
+
 /* Funktionsaufruf besuchen */
 void CodeGen::visitEApp(EApp *eapp) {
-	/* Code For EApp Goes Here */
 
+	std::cout << "Enter visitEApp" << std::endl;
 	llvm::Function *calleeF = TheModule.getFunction(eapp->id_);
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
@@ -134,63 +143,87 @@ void CodeGen::visitEApp(EApp *eapp) {
 			it != eapp->listexp_->end(); ++it) {
 		llvm_call_args.push_back(codegen(*it));
 	}
-
 	val = builder.CreateCall(calleeF, llvm_call_args, "callMeMaybe");
+
+	std::cout << "Leave visitEApp" << std::endl;
 }
 
 void CodeGen::visitADecl(ADecl *adecl) {
 	/* Code For ADecl Goes Here */
+	std::cout << "Enter visitADecl" << std::endl;
 
 	val = codegen(adecl->type_);
 	visitId(adecl->id_);
 
+	std::cout << "Leave visitADecl" << std::endl;
 }
 
 void CodeGen::visitSExp(SExp *sexp) {
 	/* Code For SExp Goes Here */
+	std::cout << "Enter visit SExp" << std::endl;
 
 	sexp->exp_->accept(this);
 
+	std::cout << "Leave visitSExp" << std::endl;
 }
 
 void CodeGen::visitSDecls(SDecls *sdecls) {
 	/* Code For SDecls Goes Here */
+	std::cout << "Enter visitSDecls" << std::endl;
 
 	sdecls->type_->accept(this);
 	sdecls->listid_->accept(this);
 
+	std::cout << "Leave visitSDecls" << std::endl;
 }
 
 void CodeGen::visitSInit(SInit *sinit) {
 	/* Code For SInit Goes Here */
+	std::cout << "Enter visitSInit" << std::endl;
 
 	sinit->type_->accept(this);
 	visitId(sinit->id_);
 	sinit->exp_->accept(this);
 
+	std::cout << "Leave visitSInit" << std::endl;
 }
 
-void CodeGen::visitSReturn(SReturn *sreturn) {
+
+void CodeGen::visitSReturn(SReturn *sreturn)
+{
+	/* Code For SReturn Goes Here */
+	std::cout << "Enter visitSReturn" << std::endl;
+
+	// Füge non-void return statement ein
+	// wichtig: darf Insertpoint nicht verändern!
 	val = builder.CreateRet(val);
+
+	std::cout << "Leave visitSReturn" << std::endl;
 }
 
 void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid) {
+	std::cout << "Enter visitSReturnVoid" << std::endl;
 	val = builder.CreateRetVoid();
+	std::cout << "Leave visitSReturnVoid" << std::endl;
 }
 
 void CodeGen::visitSWhile(SWhile *swhile) {
 	/* Code For SWhile Goes Here */
+	std::cout << "Enter visitSWhile" << std::endl;
 
 	swhile->exp_->accept(this);
 	swhile->stm_->accept(this);
 
+	std::cout << "Leave visitSWhile" << std::endl;
 }
 
 void CodeGen::visitSBlock(SBlock *sblock) {
 	/* Code For SBlock Goes Here */
+	std::cout << "Enter visitSBlock" << std::endl;
 
 	sblock->liststm_->accept(this);
 
+	std::cout << "Leave visitSBlock" << std::endl;
 }
 
 void CodeGen::visitSIfElse(SIfElse *sifelse) {
@@ -443,30 +476,50 @@ void CodeGen::visitType_string(Type_string *type_string) {
 }
 
 void CodeGen::visitListArg(ListArg* listarg) {
+	std::cout << "Enter visitListArg" << std::endl;
+
 //	for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
 //	{
 //		(*i)->accept(this);
 //	}
 
-	// TODO Funktionsargumente in NamedValues eintragen?
+	std::cout << "Leave visitListArg" << std::endl;
 }
 
-void CodeGen::visitListStm(ListStm* liststm) {
-	for (ListStm::iterator i = liststm->begin(); i != liststm->end(); ++i) {
+void CodeGen::visitListStm(ListStm* liststm)
+{
+	std::cout << "Enter visitListStm" << std::endl;
+
+	for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
+	{
 		(*i)->accept(this);
 	}
+	std::cout << "Leave visitListStm" << std::endl;
 }
 
-void CodeGen::visitListExp(ListExp* listexp) {
-	for (ListExp::iterator i = listexp->begin(); i != listexp->end(); ++i) {
+void CodeGen::visitListExp(ListExp* listexp)
+{
+	std::cout << "Enter visitListExp" << std::endl;
+
+	for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
+	{
 		(*i)->accept(this);
 	}
+
+	std::cout << "Leave visitListExp" << std::endl;
 }
 
-void CodeGen::visitListId(ListId* listid) {
-	for (ListId::iterator i = listid->begin(); i != listid->end(); ++i) {
-		visitId(*i);
+void CodeGen::visitListId(ListId* listid)
+{
+	std::cout << "Enter visitListId" << std::endl;
+
+	for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
+	{
+		visitId(*i) ;
 	}
+
+	std::cout << "Leave visitListId" << std::endl;
+
 }
 
 void CodeGen::visitId(Id x) {

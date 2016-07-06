@@ -4,16 +4,15 @@
 /* pretty-print the result.                                                 */
 /*                                                                          */
 /****************************************************************************/
-#include <iostream>
+#include <stdio.h>
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
-#include "CodeGen.H"
 
 int main(int argc, char ** argv)
 {
   FILE *input;
-  if (argc > 1)
+  if (argc > 1) 
   {
     input = fopen(argv[1], "r");
     if (!input)
@@ -24,15 +23,18 @@ int main(int argc, char ** argv)
   }
   else input = stdin;
   /* The default entry point is used. For other options see Parser.H */
-  Program* parse_tree = pProgram(input);
-  if (parse_tree != nullptr)
+  Program *parse_tree = pProgram(input);
+  if (parse_tree)
   {
-
-	CodeGen cg;
-	llvm::Value* result = cg.codegen(parse_tree);
-//	result->dump();
-	cg.printGeneratedIR();
+    printf("\nParse Succesful!\n");
+    printf("\n[Abstract Syntax]\n");
+    ShowAbsyn *s = new ShowAbsyn();
+    printf("%s\n\n", s->show(parse_tree));
+    printf("[Linearized Tree]\n");
+    PrintAbsyn *p = new PrintAbsyn();
+    printf("%s\n\n", p->print(parse_tree));
     return 0;
   }
   return 1;
 }
+
