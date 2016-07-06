@@ -8,9 +8,10 @@
 #include "CodeGen.H"
 
 CodeGen::CodeGen(){
-	 module = new llvm::Module("top", llvm::getGlobalContext());
+	TheContext = llvm::getGlobalContext();
+	TheModule = new llvm::Module("my code", TheContext);
+	builder = llvm::IRBuilder<> ();
 	 val = nullptr;
-	 block = nullptr;
 }
 
 CodeGen::~CodeGen() {
@@ -142,7 +143,7 @@ void CodeGen::visitADecl(ADecl *adecl)
 void CodeGen::visitSExp(SExp *sexp)
 {
 	/* Code For SExp Goes Here */
-	std::cout << "Enter visit SExp" std::endl;
+	std::cout << "Enter visit SExp" << std::endl;
 
 	sexp->exp_->accept(this);
 

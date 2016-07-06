@@ -26,6 +26,8 @@
 #include <memory>
 #include <iostream>
 
+using namespace std;
+
 class CodeGen : public Visitor
 {
 public:
@@ -95,12 +97,11 @@ public:
 	void visitIdent(Ident x);
 
 private:
-	llvm::Module* module;
-	//llvm::IRBuilder<> builder;
-	std::map<std::string, llvm::Value *> NamedValues;
-    llvm::BasicBlock* block;
-    llvm::Value* val;
+        llvm::Value* val;
+        llvm::LLVMContext TheContext;
+        llvm::Module *TheModule; //wird in Konstruktor initialisiert
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
 };
 
 #endif /* CODEGEN_H_ */
-	
