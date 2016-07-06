@@ -24,6 +24,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -31,6 +32,7 @@ class CodeGen : public Visitor
 {
 private:
         llvm::Value* val;
+        llvm::Type* type;
         //static llvm::LLVMContext TheContext = llvm::getGlobalContext();
         llvm::Module TheModule; //wird in Konstruktor initialisiert
         llvm::LLVMContext& context;
@@ -43,6 +45,8 @@ public:
     virtual ~CodeGen() = default;
 
     llvm::Value* codegen(Visitable* v);
+    llvm::Type* typegen(Visitable* v);
+    void printGeneratedIR();
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
