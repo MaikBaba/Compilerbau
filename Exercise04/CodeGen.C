@@ -118,9 +118,22 @@ void CodeGen::visitEApp(EApp *eapp)
 {
 	/* Code For EApp Goes Here */
 
-	visitId(eapp->id_);
-	eapp->listexp_->accept(this);
+	llvm::Function *calleeF = TheModule->getFunction(eapp->id_);
 
+	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
+	if (!calleeF)
+		// TODO Error: Unbekannte Funktion
+	if (calleeF->arg_size() != eapp->listexp_->size()) {
+		// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+	}
+
+	std::vector<llvm::Value*> llvm_call_args;
+	for(ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it)
+	{
+		llvm_call_args.push_back(codegen(*it));
+	}
+
+	val = builder.CreateCall(calleeF, llvm_call_args, "callMeMaybe");
 }
 
 void CodeGen::visitADecl(ADecl *adecl)
