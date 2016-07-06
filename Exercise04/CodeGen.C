@@ -122,9 +122,11 @@ void CodeGen::visitEApp(EApp *eapp)
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
 	if (!calleeF)
-		// TODO Error: Unbekannte Funktion
+		//Error: Unbekannte Funktion
+		throw new TypeException("The function " + eapp->id_ + " is not a known function.");
 	if (calleeF->arg_size() != eapp->listexp_->size()) {
-		// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+		//Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+		throw new TypeException("number of passed Arguments for the function " + eapp->id_ + " is not correct.");
 	}
 
 	std::vector<llvm::Value*> llvm_call_args;
