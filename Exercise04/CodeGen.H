@@ -15,25 +15,33 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Verifier.h>
 #include <string>
 #include <vector>
 #include <map>
 #include <memory>
-#include <iostream>
 
 using namespace std;
 
 class CodeGen : public Visitor
 {
+private:
+        llvm::Value* val;
+        //static llvm::LLVMContext TheContext = llvm::getGlobalContext();
+        llvm::Module TheModule; //wird in Konstruktor initialisiert
+        llvm::LLVMContext& context;
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
+
 public:
 
-	CodeGen(llvm::LLVMContext* con, llvm::Module* mod, llvm::IRBuilder<>* build);
-    ~CodeGen();
+	CodeGen();
+    virtual ~CodeGen() = default;
+
     llvm::Value* codegen(Visitable* v);
 
 	void visitProgram(Program* p);
@@ -95,13 +103,6 @@ public:
 	void visitDouble(Double x);
 	void visitString(String x);
 	void visitIdent(Ident x);
-
-private:
-        llvm::Value* val;
-        std::map<std::string, llvm::Value *> NamedValues;
-        llvm::LLVMContext* TheContext;
-        llvm::Module* TheModule;
-        llvm::IRBuilder<>* TheBuilder;
 };
 
 #endif /* CODEGEN_H_ */

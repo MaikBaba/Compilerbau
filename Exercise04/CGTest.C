@@ -10,23 +10,6 @@
 #include "Absyn.H"
 #include "CodeGen.H"
 
-#include <llvm/IR/Value.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/BasicBlock.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Verifier.h>
-
-
-static llvm::LLVMContext TheContext;
-static llvm::IRBuilder<> Builder(TheContext);
-static llvm::Module* TheModule;
-
 int main(int argc, char ** argv)
 {
   FILE *input;
@@ -42,14 +25,14 @@ int main(int argc, char ** argv)
   else input = stdin;
   /* The default entry point is used. For other options see Parser.H */
   Program* parse_tree = pProgram(input);
-  if (parse_tree)
+  if (parse_tree != nullptr)
   {
-	  TheModule = new llvm::Module("my code", TheContext);
-		CodeGen* cg = new CodeGen(&TheContext, TheModule, &Builder);
-		cg->codegen(parse_tree);
 
-		printf("OK");
-		return 0;
+	CodeGen cg;
+	cg.codegen(parse_tree);
+
+	printf("OK");
+    return 0;
   }
   return 1;
 }
