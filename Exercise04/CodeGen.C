@@ -87,12 +87,18 @@ void CodeGen::visitDFun(DFun *dfun)
 	// TODO Könnte man das auch weiter rekursiv machen?
 	//      dfun->listarg_->accept(this); und dann in visitListArg eintragen
 
+	// generiere Code für die Statements im Body
+	val = codegen(dfun->liststm_);
 
-	// generiere Code für die Statements/Body
-	val = dfun->liststm_->accept(this);
 
-	//generiere return statement
-	dfun->type_->accept(this);
+	// rekursiver Aufruf kann den Builder Insert Point verschieben
+	// => auf aktuellen Block setzen
+	builder.SetInsertPoint(entryBlock);
+
+	// generiere return statement
+	// Falls der Insertpoint bei rekursivem Aufruf auf einen anderen Block gesetzt wurde,
+	// wird das return statement in jenem Block generiert
+	codegen(dfun->type_);
 
 
 }
@@ -147,8 +153,11 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 	/* Code For SReturn Goes Here */
 
 	// Füge non-void return statement ein
-	// (in de
-	builder
+	// wichtig: darf Insertpoint nicht verändern!
+	builder.CreateRet(val);
+
+	// TODO Funktion zurückgeben?
+	// val = ???
 
 }
 
@@ -178,18 +187,40 @@ void CodeGen::visitSBlock(SBlock *sblock)
 
 void CodeGen::visitSIfElse(SIfElse *sifelse)
 {
-	/* Code For SIfElse Goes Here */
+	// Hole die Funktion, für die wir gerade Code generieren
+	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	// Condition-Expression besuchen, Value/Variable merken und vergleichen
+	// Basic Blocks für then, else, merge in der aktuellen Funktion anlegen und einfügen
+	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(TheContext, "thenBlock", currentFun);
+	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(TheContext, "elsefBlock", currentFun);
+	llvm::BasicBlock *mergeBB =llvm::BasicBlock::Create(TheContext, "mergeBlock", currentFun);
+	/*** Einzelteile generieren ***/
+
+	// Condition-Expression (gehört noch zu entry block)
 	sifelse->exp_->accept(this);
 	llvm::Value *condExprVal = val;
 	// TODO if (!val) ?
 	condExprVal = builder.CreateFCmpONE(condExprVal, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
+	// Entry block mit Conditional-Branch abschließen
+	builder.CreateCondBr(condExprVal, thenBB, elseBB);
 
-
+	// Then-Statement
+	builder.SetInsertPoint(thenBB);
 	sifelse->stm_1->accept(this);
-	sifelse->stm_2->accept(this);
+	llvm::Value *thenVal = val; // generierten Value für Phi merken
+	builder.CreateBr(mergeBB); //then-Block mit Sprung in merge-Block abschließen
 
+	// Else-Statement
+	builder.SetInsertPoint(elseBB);
+	sifelse->stm_2->accept(this);
+	llvm::Value *elseVal = val; // generierten Value für Phi merken
+	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
+
+	// merge-Block
+	builder.SetInsertPoint(mergeBB);
+	llvm::PHINode *phiStatement = builder.CreatePHI(llvm::Type::getDoubleTy(TheContext), 2, "merge");
+	phiStatement->addIncoming(thenVal, thenBB); //wenn wir aus then-Block kommen, übernimm thenValue
+	phiStatement->addIncoming(elseVal, elseBB); //wenn wir aus else-Block kommen, übernimm elseValue
 }
 
 void CodeGen::visitETrue(ETrue *etrue)
