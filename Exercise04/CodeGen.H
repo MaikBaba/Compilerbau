@@ -1,31 +1,40 @@
-#ifndef TYPECHECKER_H_
-#define TYPECHECKER_H_
+/*
+ * CodeGen.H
+ *
+ *  Created on: Jun 28, 2016
+ *      Author: MB
+ */
+
+#ifndef CODEGEN_H_
+#define CODEGEN_H_
 
 #include "Absyn.H"
+#include <llvm/IR/Value.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Verifier.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
+#include <iostream>
 
-#include "Env.H"
-#include "FunType.H"
+using namespace std;
 
-class TypeChecker : public Visitor
+class CodeGen : public Visitor
 {
 public:
 
-    ~TypeChecker();
-    Type* typecheck(Visitable* v);
-
-    //Type lookup (Ident x, Env T);
-    //FunType lookup(Ident f, Env T);
-	Env extend(Env T, Ident x, Type* t);
-	Env extend(Env T, Def* d);
-	Env newBlock(Env T);
-	Env emptEnv();
-
-	Type* infer(Env T, Exp* e);
-
-	void check(Env T, Exp* e, Type* t);
-	void check(Env T, Stm* s);
-	void check(Env T, Def* d);
-	void check(Program* p);
+	CodeGen();
+    ~CodeGen();
+    llvm::Value* codegen(Visitable* v);
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
@@ -88,9 +97,11 @@ public:
 	void visitIdent(Ident x);
 
 private:
-        Env env_;
-        Type* ty_;
-
+        llvm::Value* val;
+        llvm::LLVMContext TheContext;
+        llvm::Module *TheModule; //wird in Konstruktor initialisiert
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
 };
 
-#endif
+#endif /* CODEGEN_H_ */

@@ -8,7 +8,7 @@
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
-#include ""
+#include "CodeGen.H"
 
 int main(int argc, char ** argv)
 {
@@ -27,22 +27,11 @@ int main(int argc, char ** argv)
   Program* parse_tree = pProgram(input);
   if (parse_tree)
   {
-    try {
+	CodeGen* cg = new CodeGen();
+	cg->codegen(parse_tree);
 
-      CodeGen* cg = new TypeChecker();
-      tc->typecheck(parse_tree);
-
-      printf("OK");
-      } catch (TypeException* e) {
-          printf("TYPE ERROR");
-          std::cout<< e->what();
-          cout<< endl;
-          return 1;
-      }
-
+	printf("OK");
     return 0;
   }
   return 1;
 }
-
-
