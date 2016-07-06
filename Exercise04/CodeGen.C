@@ -1,4 +1,3 @@
-
 /*
  * CodeGen.C
  *
@@ -7,15 +6,11 @@
  */
 #include "CodeGen.H"
 
-CodeGen::CodeGen() {
-	TheContext = llvm::getGlobalContext();
-	TheModule = llvm::Module("my code", TheContext);
-	builder = llvm::IRBuilder<>(TheContext);
+CodeGen::CodeGen(void) :
+		builder(llvm::getGlobalContext()),
+		context(llvm::getGlobalContext()),
+		TheModule("my code", context) {
 	val = nullptr;
-}
-
-CodeGen::~CodeGen() {
-
 }
 
 llvm::Value* CodeGen::codegen(Visitable* v) {
@@ -23,15 +18,20 @@ llvm::Value* CodeGen::codegen(Visitable* v) {
 	return val;
 }
 
-void CodeGen::visitProgram(Program* t) {} //abstract class
-void CodeGen::visitDef(Def* t) {} //abstract class
-void CodeGen::visitArg(Arg* t) {} //abstract class
-void CodeGen::visitStm(Stm* t) {} //abstract class
-void CodeGen::visitExp(Exp* t) {} //abstract class
-void CodeGen::visitType(Type* t) {} //abstract class
+void CodeGen::visitProgram(Program* t) {
+} //abstract class
+void CodeGen::visitDef(Def* t) {
+} //abstract class
+void CodeGen::visitArg(Arg* t) {
+} //abstract class
+void CodeGen::visitStm(Stm* t) {
+} //abstract class
+void CodeGen::visitExp(Exp* t) {
+} //abstract class
+void CodeGen::visitType(Type* t) {
+} //abstract class
 
-void CodeGen::visitPDefs(PDefs *pdefs)
-{
+void CodeGen::visitPDefs(PDefs *pdefs) {
 	/* Code For PDefs Goes Here */
 
 	codegen(pdefs->listdef_);
@@ -39,39 +39,42 @@ void CodeGen::visitPDefs(PDefs *pdefs)
 }
 /*************************************************************************
  * 						 	  FUNKTIONEN ETC.							 *
-/*************************************************************************/
+ /*************************************************************************/
 
 /* Funktionsprototyp besuchen */
-void CodeGen::visitListDef(ListDef* listdef)
-{
-		for (ListDef::iterator proto_it = listdef->begin(); proto_it != listdef->end(); proto_it++) {
-			DFun* proto = (DFun*) *proto_it;
+void CodeGen::visitListDef(ListDef* listdef) {
+	for (ListDef::iterator proto_it = listdef->begin();
+			proto_it != listdef->end(); proto_it++) {
+		DFun* proto = (DFun*) *proto_it;
 
-			llvm::Function *f = TheModule->getFunction(proto->id_);
-			// Übersringe, falls f schon in Modul vorhanden und Argumente stimmen
-			if (f) {
-				//
-				if (f->arg_size() == proto->listarg_->size())
-					continue;
-				else {
-					// TODO Error: Funktion existiert, aber Argumentanzahl stimmt nicht überein
-				}
-			}
-			// Baue llvm Funktionstyp auf
-			// Alle Typen sind llvm doubles
-			vector<llvm::Type*> protoArgs(proto->listarg_->size(), llvm::Type::getDoubleTy(TheContext));
-			llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), protoArgs, false);
-
-			// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
-			llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, proto->id_, TheModule);
-
-			// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
-			ListArg::iterator listarg = proto->listarg_->begin();
-			for(auto &arg : llvm_fun->args()) {
-				arg.setName(((ADecl*) *listarg)->id_);
-				listarg++;
+		llvm::Function *f = TheModule.getFunction(proto->id_);
+		// Übersringe, falls f schon in Modul vorhanden und Argumente stimmen
+		if (f) {
+			//
+			if (f->arg_size() == proto->listarg_->size())
+				continue;
+			else {
+				// TODO Error: Funktion existiert, aber Argumentanzahl stimmt nicht überein
 			}
 		}
+		// Baue llvm Funktionstyp auf
+		// Alle Typen sind llvm doubles
+		vector<llvm::Type*> protoArgs(proto->listarg_->size(),
+				llvm::Type::getDoubleTy(context));
+		llvm::FunctionType* llvm_funType = llvm::FunctionType::get(
+				llvm::Type::getDoubleTy(context), protoArgs, false);
+
+		// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
+		llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType,
+				llvm::Function::ExternalLinkage, proto->id_, &TheModule);
+
+		// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
+		ListArg::iterator listarg = proto->listarg_->begin();
+		for (auto &arg : llvm_fun->args()) {
+			arg.setName(((ADecl*) *listarg)->id_);
+			listarg++;
+		}
+	}
 }
 
 /* Funktionsdefinition besuchen*/
@@ -79,14 +82,15 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
 	// TODO Polymorphe Funktionen
-	llvm::Function *TheFunction = TheModule->getFunction(dfun->id_);
+	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
 	if (!TheFunction)
 		return;
 
 	/* generiere einen einzigen entry block
 	 * Branching statements müssen selbst Blöcke generieren
 	 * und den insert point ändern */
-	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
+	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(context, "entry",
+			TheFunction);
 	builder.SetInsertPoint(entryBlock);
 
 	// Füge Funktionsargumente in env_/NamedValues ein
@@ -95,7 +99,6 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// generiere Code für die Statements im Body
 	val = codegen(dfun->liststm_);
-
 
 	// rekursiver Aufruf kann den Builder Insert Point verschieben
 	// => auf aktuellen Block setzen
@@ -114,47 +117,43 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 }
 /* Funktionsaufruf besuchen */
-void CodeGen::visitEApp(EApp *eapp)
-{
+void CodeGen::visitEApp(EApp *eapp) {
 	/* Code For EApp Goes Here */
 
-	llvm::Function *calleeF = TheModule->getFunction(eapp->id_);
+	llvm::Function *calleeF = TheModule.getFunction(eapp->id_);
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
 	if (!calleeF)
 		// TODO Error: Unbekannte Funktion
-	if (calleeF->arg_size() != eapp->listexp_->size()) {
-		// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
-	}
+		if (calleeF->arg_size() != eapp->listexp_->size()) {
+			// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+		}
 
 	std::vector<llvm::Value*> llvm_call_args;
-	for(ListExp::iterator it = eapp->listexp_->begin(); it != eapp->listexp_->end(); ++it)
-	{
+	for (ListExp::iterator it = eapp->listexp_->begin();
+			it != eapp->listexp_->end(); ++it) {
 		llvm_call_args.push_back(codegen(*it));
 	}
 
 	val = builder.CreateCall(calleeF, llvm_call_args, "callMeMaybe");
 }
 
-void CodeGen::visitADecl(ADecl *adecl)
-{
+void CodeGen::visitADecl(ADecl *adecl) {
 	/* Code For ADecl Goes Here */
 
-	adecl->type_->accept(this);
+	val = codegen(adecl->type_);
 	visitId(adecl->id_);
 
 }
 
-void CodeGen::visitSExp(SExp *sexp)
-{
+void CodeGen::visitSExp(SExp *sexp) {
 	/* Code For SExp Goes Here */
 
 	sexp->exp_->accept(this);
 
 }
 
-void CodeGen::visitSDecls(SDecls *sdecls)
-{
+void CodeGen::visitSDecls(SDecls *sdecls) {
 	/* Code For SDecls Goes Here */
 
 	sdecls->type_->accept(this);
@@ -162,8 +161,7 @@ void CodeGen::visitSDecls(SDecls *sdecls)
 
 }
 
-void CodeGen::visitSInit(SInit *sinit)
-{
+void CodeGen::visitSInit(SInit *sinit) {
 	/* Code For SInit Goes Here */
 
 	sinit->type_->accept(this);
@@ -172,24 +170,15 @@ void CodeGen::visitSInit(SInit *sinit)
 
 }
 
-void CodeGen::visitSReturn(SReturn *sreturn)
-{
-	/* Code For SReturn Goes Here */
-
-	// Füge non-void return statement ein
-	// wichtig: darf Insertpoint nicht verändern!
+void CodeGen::visitSReturn(SReturn *sreturn) {
 	val = builder.CreateRet(val);
 }
 
-void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid)
-{
-	/* Code For SReturnVoid Goes Here */
-
-
+void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid) {
+	val = builder.CreateRetVoid();
 }
 
-void CodeGen::visitSWhile(SWhile *swhile)
-{
+void CodeGen::visitSWhile(SWhile *swhile) {
 	/* Code For SWhile Goes Here */
 
 	swhile->exp_->accept(this);
@@ -197,30 +186,32 @@ void CodeGen::visitSWhile(SWhile *swhile)
 
 }
 
-void CodeGen::visitSBlock(SBlock *sblock)
-{
+void CodeGen::visitSBlock(SBlock *sblock) {
 	/* Code For SBlock Goes Here */
 
 	sblock->liststm_->accept(this);
 
 }
 
-void CodeGen::visitSIfElse(SIfElse *sifelse)
-{
+void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
 	// Basic Blocks für then, else, merge in der aktuellen Funktion anlegen und einfügen
-	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(TheContext, "thenBlock", currentFun);
-	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(TheContext, "elsefBlock", currentFun);
-	llvm::BasicBlock *mergeBB =llvm::BasicBlock::Create(TheContext, "mergeBlock", currentFun);
+	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "thenBlock",
+			currentFun);
+	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "elsefBlock",
+			currentFun);
+	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBlock",
+			currentFun);
 	/*** Einzelteile generieren ***/
 
 	// Condition-Expression (gehört noch zu entry block)
 	sifelse->exp_->accept(this);
 	llvm::Value *condExprVal = val;
 	// TODO if (!val) ?
-	condExprVal = builder.CreateFCmpONE(condExprVal, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
+	condExprVal = builder.CreateFCmpONE(condExprVal,
+			llvm::ConstantFP::get(context, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
 	// Entry block mit Conditional-Branch abschließen
 	builder.CreateCondBr(condExprVal, thenBB, elseBB);
 
@@ -238,91 +229,79 @@ void CodeGen::visitSIfElse(SIfElse *sifelse)
 
 	// merge-Block
 	builder.SetInsertPoint(mergeBB);
-	llvm::PHINode *phiStatement = builder.CreatePHI(llvm::Type::getDoubleTy(TheContext), 2, "merge");
+	llvm::PHINode *phiStatement = builder.CreatePHI(
+			llvm::Type::getDoubleTy(context), 2, "merge");
 	phiStatement->addIncoming(thenVal, thenBB); //wenn wir aus then-Block kommen, übernimm thenValue
 	phiStatement->addIncoming(elseVal, elseBB); //wenn wir aus else-Block kommen, übernimm elseValue
 }
 
-void CodeGen::visitETrue(ETrue *etrue)
-{
+void CodeGen::visitETrue(ETrue *etrue) {
 	/* Code For ETrue Goes Here */
 
-
 }
 
-void CodeGen::visitEFalse(EFalse *efalse)
-{
+void CodeGen::visitEFalse(EFalse *efalse) {
 	/* Code For EFalse Goes Here */
 
-
 }
 
-void CodeGen::visitEInt(EInt *eint)
-{
+void CodeGen::visitEInt(EInt *eint) {
 	/* Code For EInt Goes Here */
 
 	visitInteger(eint->integer_);
 
 }
 
-void CodeGen::visitEDouble(EDouble *edouble)
-{
+void CodeGen::visitEDouble(EDouble *edouble) {
 	/* Code For EDouble Goes Here */
 
 	visitDouble(edouble->double_);
 
 }
 
-void CodeGen::visitEString(EString *estring)
-{
+void CodeGen::visitEString(EString *estring) {
 	/* Code For EString Goes Here */
 
 	visitString(estring->string_);
 
 }
 
-void CodeGen::visitEId(EId *eid)
-{
+void CodeGen::visitEId(EId *eid) {
 	/* Code For EId Goes Here */
 
 	visitId(eid->id_);
 
 }
 
-void CodeGen::visitEPIncr(EPIncr *epincr)
-{
+void CodeGen::visitEPIncr(EPIncr *epincr) {
 	/* Code For EPIncr Goes Here */
 
 	epincr->exp_->accept(this);
 
 }
 
-void CodeGen::visitEPDecr(EPDecr *epdecr)
-{
+void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	/* Code For EPDecr Goes Here */
 
 	epdecr->exp_->accept(this);
 
 }
 
-void CodeGen::visitEIncr(EIncr *eincr)
-{
+void CodeGen::visitEIncr(EIncr *eincr) {
 	/* Code For EIncr Goes Here */
 
 	eincr->exp_->accept(this);
 
 }
 
-void CodeGen::visitEDecr(EDecr *edecr)
-{
+void CodeGen::visitEDecr(EDecr *edecr) {
 	/* Code For EDecr Goes Here */
 
 	edecr->exp_->accept(this);
 
 }
 
-void CodeGen::visitETimes(ETimes *etimes)
-{
+void CodeGen::visitETimes(ETimes *etimes) {
 	/* Code For ETimes Goes Here */
 
 	etimes->exp_1->accept(this);
@@ -330,8 +309,7 @@ void CodeGen::visitETimes(ETimes *etimes)
 
 }
 
-void CodeGen::visitEDiv(EDiv *ediv)
-{
+void CodeGen::visitEDiv(EDiv *ediv) {
 	/* Code For EDiv Goes Here */
 
 	ediv->exp_1->accept(this);
@@ -339,8 +317,7 @@ void CodeGen::visitEDiv(EDiv *ediv)
 
 }
 
-void CodeGen::visitEPlus(EPlus *eplus)
-{
+void CodeGen::visitEPlus(EPlus *eplus) {
 	/* Code For EPlus Goes Here */
 
 	eplus->exp_1->accept(this);
@@ -348,8 +325,7 @@ void CodeGen::visitEPlus(EPlus *eplus)
 
 }
 
-void CodeGen::visitEMinus(EMinus *eminus)
-{
+void CodeGen::visitEMinus(EMinus *eminus) {
 	/* Code For EMinus Goes Here */
 
 	eminus->exp_1->accept(this);
@@ -357,8 +333,7 @@ void CodeGen::visitEMinus(EMinus *eminus)
 
 }
 
-void CodeGen::visitELt(ELt *elt)
-{
+void CodeGen::visitELt(ELt *elt) {
 	/* Code For ELt Goes Here */
 
 	elt->exp_1->accept(this);
@@ -366,8 +341,7 @@ void CodeGen::visitELt(ELt *elt)
 
 }
 
-void CodeGen::visitEGt(EGt *egt)
-{
+void CodeGen::visitEGt(EGt *egt) {
 	/* Code For EGt Goes Here */
 
 	egt->exp_1->accept(this);
@@ -375,8 +349,7 @@ void CodeGen::visitEGt(EGt *egt)
 
 }
 
-void CodeGen::visitELtEq(ELtEq *elteq)
-{
+void CodeGen::visitELtEq(ELtEq *elteq) {
 	/* Code For ELtEq Goes Here */
 
 	elteq->exp_1->accept(this);
@@ -384,8 +357,7 @@ void CodeGen::visitELtEq(ELtEq *elteq)
 
 }
 
-void CodeGen::visitEGtEq(EGtEq *egteq)
-{
+void CodeGen::visitEGtEq(EGtEq *egteq) {
 	/* Code For EGtEq Goes Here */
 
 	egteq->exp_1->accept(this);
@@ -393,8 +365,7 @@ void CodeGen::visitEGtEq(EGtEq *egteq)
 
 }
 
-void CodeGen::visitEEq(EEq *eeq)
-{
+void CodeGen::visitEEq(EEq *eeq) {
 	/* Code For EEq Goes Here */
 
 	eeq->exp_1->accept(this);
@@ -402,8 +373,7 @@ void CodeGen::visitEEq(EEq *eeq)
 
 }
 
-void CodeGen::visitENEq(ENEq *eneq)
-{
+void CodeGen::visitENEq(ENEq *eneq) {
 	/* Code For ENEq Goes Here */
 
 	eneq->exp_1->accept(this);
@@ -411,8 +381,7 @@ void CodeGen::visitENEq(ENEq *eneq)
 
 }
 
-void CodeGen::visitEAnd(EAnd *eand)
-{
+void CodeGen::visitEAnd(EAnd *eand) {
 	/* Code For EAnd Goes Here */
 
 	eand->exp_1->accept(this);
@@ -420,8 +389,7 @@ void CodeGen::visitEAnd(EAnd *eand)
 
 }
 
-void CodeGen::visitEOr(EOr *eor)
-{
+void CodeGen::visitEOr(EOr *eor) {
 	/* Code For EOr Goes Here */
 
 	eor->exp_1->accept(this);
@@ -429,8 +397,7 @@ void CodeGen::visitEOr(EOr *eor)
 
 }
 
-void CodeGen::visitEAss(EAss *eass)
-{
+void CodeGen::visitEAss(EAss *eass) {
 	/* Code For EAss Goes Here */
 
 	eass->exp_1->accept(this);
@@ -438,8 +405,7 @@ void CodeGen::visitEAss(EAss *eass)
 
 }
 
-void CodeGen::visitETyped(ETyped *etyped)
-{
+void CodeGen::visitETyped(ETyped *etyped) {
 	/* Code For ETyped Goes Here */
 
 	etyped->exp_->accept(this);
@@ -447,44 +413,32 @@ void CodeGen::visitETyped(ETyped *etyped)
 
 }
 
-void CodeGen::visitType_bool(Type_bool *type_bool)
-{
+void CodeGen::visitType_bool(Type_bool *type_bool) {
 	/* Code For Type_bool Goes Here */
 
-
 }
 
-void CodeGen::visitType_int(Type_int *type_int)
-{
+void CodeGen::visitType_int(Type_int *type_int) {
 	/* Code For Type_int Goes Here */
 
-
 }
 
-void CodeGen::visitType_double(Type_double *type_double)
-{
+void CodeGen::visitType_double(Type_double *type_double) {
 	/* Code For Type_double Goes Here */
 
-
 }
 
-void CodeGen::visitType_void(Type_void *type_void)
-{
+void CodeGen::visitType_void(Type_void *type_void) {
 	/* Code For Type_void Goes Here */
 
-
 }
 
-void CodeGen::visitType_string(Type_string *type_string)
-{
+void CodeGen::visitType_string(Type_string *type_string) {
 	/* Code For Type_string Goes Here */
 
-
 }
 
-
-void CodeGen::visitListArg(ListArg* listarg)
-{
+void CodeGen::visitListArg(ListArg* listarg) {
 //	for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
 //	{
 //		(*i)->accept(this);
@@ -493,57 +447,44 @@ void CodeGen::visitListArg(ListArg* listarg)
 	// TODO Funktionsargumente in NamedValues eintragen?
 }
 
-void CodeGen::visitListStm(ListStm* liststm)
-{
-	for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
-	{
+void CodeGen::visitListStm(ListStm* liststm) {
+	for (ListStm::iterator i = liststm->begin(); i != liststm->end(); ++i) {
 		(*i)->accept(this);
 	}
 }
 
-void CodeGen::visitListExp(ListExp* listexp)
-{
-	for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
-	{
+void CodeGen::visitListExp(ListExp* listexp) {
+	for (ListExp::iterator i = listexp->begin(); i != listexp->end(); ++i) {
 		(*i)->accept(this);
 	}
 }
 
-void CodeGen::visitListId(ListId* listid)
-{
-	for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
-	{
-		visitId(*i) ;
+void CodeGen::visitListId(ListId* listid) {
+	for (ListId::iterator i = listid->begin(); i != listid->end(); ++i) {
+		visitId(*i);
 	}
 }
 
-
-void CodeGen::visitId(Id x)
-{
+void CodeGen::visitId(Id x) {
 	/* Code for Id Goes Here */
 }
 
-void CodeGen::visitInteger(Integer x)
-{
+void CodeGen::visitInteger(Integer x) {
 	/* Code for Integer Goes Here */
 }
 
-void CodeGen::visitChar(Char x)
-{
+void CodeGen::visitChar(Char x) {
 	/* Code for Char Goes Here */
 }
 
-void CodeGen::visitDouble(Double x)
-{
+void CodeGen::visitDouble(Double x) {
 	/* Code for Double Goes Here */
 }
 
-void CodeGen::visitString(String x)
-{
+void CodeGen::visitString(String x) {
 	/* Code for String Goes Here */
 }
 
-void CodeGen::visitIdent(Ident x)
-{
+void CodeGen::visitIdent(Ident x) {
 	/* Code for Ident Goes Here */
 }
