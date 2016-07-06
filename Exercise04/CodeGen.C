@@ -47,10 +47,16 @@ void CodeGen::visitListDef(ListDef* listdef)
 		for (ListDef::iterator proto_it = listdef->begin(); proto_it != listdef->end(); proto_it++) {
 			DFun* proto = (DFun*) *proto_it;
 
-			// Überspringe diese Definition, falls schon in Modul vorhanden
-			if (! TheModule->getFunction(proto->id_))
-				continue;
-
+			llvm::Function *f = TheModule->getFunction(proto->id_);
+			// Übersringe, falls f schon in Modul vorhanden und Argumente stimmen
+			if (f) {
+				//
+				if (f->arg_size() == proto->listarg_->size())
+					continue;
+				else {
+					// TODO Error: Funktion existiert, aber Argumentanzahl stimmt nicht überein
+				}
+			}
 			// Baue llvm Funktionstyp auf
 			// Alle Typen sind llvm doubles
 			vector<llvm::Type*> protoArgs(proto->listarg_->size(), llvm::Type::getDoubleTy(TheContext));
@@ -69,10 +75,10 @@ void CodeGen::visitListDef(ListDef* listdef)
 }
 
 /* Funktionsdefinition besuchen*/
-void CodeGen::visitDFun(DFun *dfun)
-{
+void CodeGen::visitDFun(DFun *dfun) {
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
+	// TODO Polymorphe Funktionen
 	llvm::Function *TheFunction = TheModule->getFunction(dfun->id_);
 	if (!TheFunction)
 		return;
@@ -100,6 +106,11 @@ void CodeGen::visitDFun(DFun *dfun)
 	// wird das return statement in jenem Block generiert
 	codegen(dfun->type_);
 
+	// Validieren
+	llvm::verifyFunction(*TheFunction);
+
+	// fertige Funktion als "Rückgabewert" speichern
+	val = TheFunction;
 
 }
 /* Funktionsaufruf besuchen */
@@ -154,11 +165,7 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 
 	// Füge non-void return statement ein
 	// wichtig: darf Insertpoint nicht verändern!
-	builder.CreateRet(val);
-
-	// TODO Funktion zurückgeben?
-	// val = ???
-
+	val = builder.CreateRet(val);
 }
 
 void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid)
