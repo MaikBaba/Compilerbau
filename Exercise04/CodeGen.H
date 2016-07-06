@@ -33,11 +33,21 @@ using namespace std;
 
 class CodeGen : public Visitor
 {
+private:
+        llvm::Value* val;
+        //static llvm::LLVMContext TheContext = llvm::getGlobalContext();
+        llvm::Module TheModule; //wird in Konstruktor initialisiert
+        llvm::LLVMContext& context;
+        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        map<string, llvm::Value*> NamedValues;
+
 public:
 
 	CodeGen();
-    ~CodeGen();
+    virtual ~CodeGen() = default;
+
     llvm::Value* codegen(Visitable* v);
+    void printGeneratedIR();
 
 	Type* infer(Env T, Exp* e);
 
@@ -105,14 +115,6 @@ public:
 	void visitDouble(Double x);
 	void visitString(String x);
 	void visitIdent(Ident x);
-
-private:
-        Env env_;
-        llvm::Value* val;
-        llvm::LLVMContext TheContext;
-        llvm::Module *TheModule; //wird in Konstruktor initialisiert
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
 };
 
 #endif /* CODEGEN_H_ */
