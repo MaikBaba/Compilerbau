@@ -33,13 +33,11 @@ class CodeGen : public Visitor
 private:
         llvm::Value* val;
         llvm::Type* type;
-        //static llvm::LLVMContext TheContext = llvm::getGlobalContext();
         llvm::Module TheModule; //wird in Konstruktor initialisiert
         llvm::LLVMContext& context;
         llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
         map<string, llvm::Value*> NamedValues;
-        string indent=""; // für das Einrücken der Ausgabe
-
+        string indent="";
 public:
 
 	CodeGen();
