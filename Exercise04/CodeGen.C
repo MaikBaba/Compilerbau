@@ -376,8 +376,6 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	val = builder.CreateSub(L, One, "multmp");
-
-	std::cout << "Leave visitsEDecr" << std::endl;
 }
 
 void CodeGen::visitETimes(ETimes *etimes) {
