@@ -49,7 +49,6 @@ void CodeGen::visitPDefs(PDefs *pdefs) {
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef) {
 
-<<<<<<< HEAD
 	std::cout << indent << "Enter visitListDef" << std::endl;
 	indent.push_back('\t');
 
@@ -83,11 +82,12 @@ void CodeGen::visitListDef(ListDef* listdef) {
 			arg.setName(((ADecl*) *listarg)->id_);
 			listarg++;
 		}
-
 		//val=codegen(proto);
-	}
+
 	llvm::BasicBlock *BB = llvm::BasicBlock::Create(context, "entry", f);
 	builder.SetInsertPoint(BB);
+
+	}
 
 	//codegen(proto->liststm_);
 	indent.pop_back();
