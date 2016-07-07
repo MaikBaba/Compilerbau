@@ -94,15 +94,15 @@ void CodeGen::visitDFun(DFun *dfun) {
 	indent.pop_back();
 
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
-	llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
+	TheFunction = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
 	cout << "FunType: " << endl;
-	llvm_fun->dump();
+	TheFunction->dump();
 
 	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
 	// In NamedValue eintragen
 	ListArg::iterator listarg = dfun->listarg_->begin();
 	NamedValues.clear();
-	for (auto &arg : llvm_fun->args()) {
+	for (auto &arg : TheFunction->args()) {
 		arg.setName(((ADecl*) *listarg)->id_);
 		NamedValues[arg.getName()] = &arg;
 		listarg++;
@@ -112,7 +112,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 	 * Branching statements müssen selbst Blöcke generieren
 	 * und den insert point ändern */
 	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(context, "entry",
-			llvm_fun);
+			TheFunction);
 	builder.SetInsertPoint(entryBlock);
 
 
@@ -325,11 +325,11 @@ void CodeGen::visitEInt(EInt *eint) {
 	std::cout << indent << "Enter visitEInt" << std::endl;
 	indent.push_back('\t');
 
+	visitInteger(eint->integer_);
+
 	cout << "------------ Module Content ----------------" << endl;
 	TheModule.dump();
 	cout << "--------------------------------------------" << endl;
-	visitInteger(eint->integer_);
-
 	indent.pop_back();
 	std::cout << indent << "Leave visitEInt" << std::endl;
 }
