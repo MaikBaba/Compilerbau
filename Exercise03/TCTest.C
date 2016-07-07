@@ -8,7 +8,8 @@
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
-#include ""
+#include "TypeChecker.H"
+#include "TypeException.H"
 
 int main(int argc, char ** argv)
 {
@@ -29,7 +30,7 @@ int main(int argc, char ** argv)
   {
     try {
 
-      CodeGen* cg = new TypeChecker();
+      TypeChecker* tc = new TypeChecker();
       tc->typecheck(parse_tree);
 
       printf("OK");
