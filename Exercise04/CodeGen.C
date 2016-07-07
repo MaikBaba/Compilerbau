@@ -83,9 +83,6 @@ void CodeGen::visitDFun(DFun *dfun) {
 	indent.push_back('\t');
 	vector<llvm::Type*> protoArgs;
 
-	// Füge Argumente in NamedValues ein
-	// Zunächst alle vorhandenen löschen (block scope)
-	//NamedValues.clear();
 	for (ListArg::iterator arg_it = dfun->listarg_->begin(); arg_it != dfun->listarg_->end(); arg_it++) {
 		ADecl* adecl = (ADecl*) *arg_it;
 		protoArgs.push_back(typegen(adecl->type_));
@@ -95,8 +92,6 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 	TheFunction = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
-	cout << "FunType: " << endl;
-	TheFunction->dump();
 
 	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
 	// In NamedValue eintragen
@@ -115,6 +110,10 @@ void CodeGen::visitDFun(DFun *dfun) {
 			TheFunction);
 	builder.SetInsertPoint(entryBlock);
 
+
+	cout << "Function dump: ";
+	TheFunction->dump();
+	cout << endl;
 
 
 //	visitId(adecl->id_);
@@ -208,8 +207,13 @@ void CodeGen::visitSInit(SInit *sinit) {
 	/* Code For SInit Goes Here */
 	std::cout << indent << "Enter visitSInit" << std::endl;
 
-	sinit->type_->accept(this);
-	codegen(sinit->exp_);
+	llvm::Value* expr = codegen(sinit->exp_);
+	llvm::Type*  type = typegen(sinit->type_);
+	// TODO Variablen richtig allokieren und laden
+	val = builder.CreateAlloca(type,expr, sinit->id_);
+	val->dump();
+
+
 	NamedValues[sinit->id_] = val;
 
 	std::cout << indent << "Leave visitSInit" << std::endl;
@@ -261,39 +265,36 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	// Basic Blocks für then, else, merge in der aktuellen Funktion anlegen und einfügen
+	// Condition-Expression (gehört noch zu entry block)
+	llvm::Value *condExprVal = codegen(sifelse->exp_);
+	condExprVal = builder.CreateFCmpONE(condExprVal, llvm::ConstantFP::get(context, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
+
+	// Basic Blocks für then, else, merge erstellen (noch nicht einfügen)
 	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "thenBlock",
 			currentFun);
-	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "elsefBlock",
-			currentFun);
-	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBlock",
-			currentFun);
-	/*** Einzelteile generieren ***/
+	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "elsefBlock");
+	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBlock");
 
-	// Condition-Expression (gehört noch zu entry block)
-	Exp* tmp = sifelse->exp_;
-	codegen(sifelse->exp_);
-	llvm::Value *condExprVal = val;
-	if (val == nullptr)
-		cout << "Value in Conditional Expression war leer..." << endl;
-	condExprVal = builder.CreateFCmpONE(condExprVal,
-			llvm::ConstantFP::get(context, llvm::APFloat(0.0)), "ifcond"); // vergleiche mit 0.0
 	// Entry block mit Conditional-Branch abschließen
 	builder.CreateCondBr(condExprVal, thenBB, elseBB);
 
+	/*** Einzelteile generieren ***/
+
 	// Then-Statement
 	builder.SetInsertPoint(thenBB);
-	sifelse->stm_1->accept(this);
-	llvm::Value *thenVal = val; // generierten Value für Phi merken
+	llvm::Value *thenVal = codegen(sifelse->stm_1); // generierten Value für Phi merken
 	builder.CreateBr(mergeBB); //then-Block mit Sprung in merge-Block abschließen
+	thenBB = builder.GetInsertBlock();
 
 	// Else-Statement
+	currentFun->getBasicBlockList().push_back(elseBB);
 	builder.SetInsertPoint(elseBB);
-	sifelse->stm_2->accept(this);
-	llvm::Value *elseVal = val; // generierten Value für Phi merken
+	llvm::Value *elseVal = codegen(sifelse->stm_2); // generierten Value für Phi merken
 	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
+	elseBB = builder.GetInsertBlock();
 
 	// merge-Block
+	currentFun->getBasicBlockList().push_back(mergeBB);
 	builder.SetInsertPoint(mergeBB);
 	llvm::PHINode *phiStatement = builder.CreatePHI(
 			llvm::Type::getDoubleTy(context), 2, "merge");
@@ -328,7 +329,7 @@ void CodeGen::visitEInt(EInt *eint) {
 	visitInteger(eint->integer_);
 
 	cout << "------------ Module Content ----------------" << endl;
-	TheModule.dump();
+	printGeneratedIR();
 	cout << "--------------------------------------------" << endl;
 	indent.pop_back();
 	std::cout << indent << "Leave visitEInt" << std::endl;
@@ -471,10 +472,11 @@ void CodeGen::visitELt(ELt *elt) {
 	std::cout << indent << "Enter visitELt" << std::endl;
 
 	llvm::Value *L = codegen(elt->exp_1);
+	L->dump();
 	llvm::Value *R = codegen(elt->exp_2);
+	R->dump();
 
 	val = builder.CreateFCmpULT(L, R, "cmptmp");
-
 	std::cout << indent << "Leave visitELt" << std::endl;
 }
 
@@ -671,6 +673,7 @@ void CodeGen::visitId(Id x) {
 	std::cout << indent << "Enter visitId" << std::endl;
 	indent.push_back('\t');
 	val = NamedValues[x];
+
 	std::cout << indent << "Found " << x << ": " << val << std::endl;
 	indent.pop_back();
 	std::cout << indent << "Leave visitId" << std::endl;
