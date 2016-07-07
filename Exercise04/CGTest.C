@@ -32,6 +32,11 @@ int main(int argc, char ** argv)
 	cg.codegen(parse_tree);
 	std::cout << "==================================" << std::endl;
 	cg.printGeneratedIR();
+<<<<<<< HEAD
+=======
+
+	printf("OK");
+>>>>>>> sascha
     return 0;
   }
   return 1;
