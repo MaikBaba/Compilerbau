@@ -49,7 +49,6 @@ void CodeGen::visitPDefs(PDefs *pdefs) {
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef) {
 
-<<<<<<< HEAD
 	std::cout << indent << "Enter visitListDef" << std::endl;
 	indent.push_back('\t');
 
