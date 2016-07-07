@@ -85,7 +85,10 @@ void CodeGen::visitListDef(ListDef* listdef) {
 			listarg++;
 		}
 
-		codegen(proto->liststm_);
+		llvm::BasicBlock *BB = llvm::BasicBlock::Create(context, "entry", f);
+		builder.SetInsertPoint(BB);
+
+		//codegen(proto->liststm_);
 	}
 
 	std::cout << "Leave visitListDef" << std::endl;
