@@ -344,7 +344,6 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	std::cout << "Enter visitEPIncr" << std::endl;
 
 
-
 	std::cout << "Leave visitEPIncr" << std::endl;
 }
 
@@ -352,7 +351,6 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	/* Code For EPDecr Goes Here */
 	std::cout << "Enter visitEPDecr" << std::endl;
 
-	epdecr->exp_->accept(this);
 
 	std::cout << "Leave visitEPDecr" << std::endl;
 }
@@ -509,7 +507,7 @@ void CodeGen::visitEAnd(EAnd *eand) {
 	llvm::Value *L = codegen(eand->exp_1);
 	llvm::Value *R = codegen(eand->exp_2);
 
-	val = builder.CreateAnd(L, R, "cmptmp");
+	val = builder.CreateAnd(L, R, "and");
 
 	std::cout << "Leave visitEAnd" << std::endl;
 }
@@ -521,7 +519,7 @@ void CodeGen::visitEOr(EOr *eor) {
 	llvm::Value *L = codegen(eor->exp_1);
 	llvm::Value *R = codegen(eor->exp_2);
 
-	val = builder.CreateOr(L, R, "cmptmp");
+	val = builder.CreateOr(L, R, "or");
 
 	std::cout << "Leave visitEOr" << std::endl;
 }
@@ -529,9 +527,6 @@ void CodeGen::visitEOr(EOr *eor) {
 void CodeGen::visitEAss(EAss *eass) {
 	/* Code For EAss Goes Here */
 	std::cout << "Enter visitEAss" << std::endl;
-
-	eass->exp_1->accept(this);
-	eass->exp_2->accept(this);
 
 	std::cout << "Leave visitEAss" << std::endl;
 }
