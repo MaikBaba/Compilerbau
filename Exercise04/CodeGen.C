@@ -353,7 +353,7 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
 	indent.push_back('\t');
 
-
+	epincr->exp_->accept(this);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -372,18 +372,27 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	/* Code For EIncr Goes Here */
 	std::cout << indent << "Enter visitEIncr" << std::endl;
 	indent.push_back('\t');
-	eincr->exp_->accept(this);
+
+	llvm::Value *L = codegen(eincr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+
+	val = builder.CreateAdd(L, One, "multmp");
 	indent.pop_back();
 	std::cout << indent << "Leave visitEIncr" << std::endl;
 }
 
 void CodeGen::visitEDecr(EDecr *edecr) {
 	/* Code For EDecr Goes Here */
-	std::cout << indent << "Enter visitsEDecr" << std::endl;
+	std::cout << indent << "Enter visitEDecr" << std::endl;
 	indent.push_back('\t');
-	edecr->exp_->accept(this);
+
+	llvm::Value *L = codegen(edecr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+
+	val = builder.CreateSub(L, One, "multmp");
+
 	indent.pop_back();
-	std::cout << indent << "Leave visitsEDecr" << std::endl;
+	std::cout << "Leave visitEDecr" << std::endl;
 }
 
 void CodeGen::visitETimes(ETimes *etimes) {
@@ -517,7 +526,7 @@ void CodeGen::visitEAnd(EAnd *eand) {
 	llvm::Value *L = codegen(eand->exp_1);
 	llvm::Value *R = codegen(eand->exp_2);
 
-	val = builder.CreateAnd(L, R, "cmptmp");
+	val = builder.CreateAnd(L, R, "and");
 
 	std::cout << indent << "Leave visitEAnd" << std::endl;
 }
@@ -529,7 +538,7 @@ void CodeGen::visitEOr(EOr *eor) {
 	llvm::Value *L = codegen(eor->exp_1);
 	llvm::Value *R = codegen(eor->exp_2);
 
-	val = builder.CreateOr(L, R, "cmptmp");
+	val = builder.CreateOr(L, R, "or");
 
 	std::cout << indent << "Leave visitEOr" << std::endl;
 }
