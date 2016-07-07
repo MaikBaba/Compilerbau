@@ -83,12 +83,12 @@ void CodeGen::visitListDef(ListDef* listdef) {
 			listarg++;
 		}
 
-		//val=codegen(proto);
-	}
-	llvm::BasicBlock *BB = llvm::BasicBlock::Create(context, "entry", f);
-	builder.SetInsertPoint(BB);
+		llvm::BasicBlock *BB = llvm::BasicBlock::Create(context, "entry", f);
+		builder.SetInsertPoint(BB);
 
-	//codegen(proto->liststm_);
+		codegen(proto->liststm_);
+	}
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitListDef" << std::endl;
 
@@ -343,7 +343,7 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	/* Code For EPIncr Goes Here */
 	std::cout << "Enter visitEPIncr" << std::endl;
 
-	epincr->exp_->accept(this);
+
 
 	std::cout << "Leave visitEPIncr" << std::endl;
 }
@@ -379,8 +379,10 @@ void CodeGen::visitETimes(ETimes *etimes) {
 	/* Code For ETimes Goes Here */
 	std::cout << "Enter visitETimes" << std::endl;
 
-	etimes->exp_1->accept(this);
-	etimes->exp_2->accept(this);
+	llvm::Value *L = codegen(etimes->exp_1);
+	llvm::Value *R = codegen(etimes->exp_2);
+
+	val = builder.CreateMul(L, R, "multmp");
 
 	std::cout << "Leave visitETimes" << std::endl;
 }
@@ -389,8 +391,10 @@ void CodeGen::visitEDiv(EDiv *ediv) {
 	/* Code For EDiv Goes Here */
 	std::cout << "Enter visitEDiv" << std::endl;
 
-	ediv->exp_1->accept(this);
-	ediv->exp_2->accept(this);
+	llvm::Value *L = codegen(ediv->exp_1);
+	llvm::Value *R = codegen(ediv->exp_2);
+
+	val = builder.CreateExactUDiv(L, R, "divtmp");
 
 	std::cout << "Leave visitEDiv" << std::endl;
 }
@@ -399,8 +403,10 @@ void CodeGen::visitEPlus(EPlus *eplus) {
 	/* Code For EPlus Goes Here */
 	std::cout << "Enter visitEPlus" << std::endl;
 
-	eplus->exp_1->accept(this);
-	eplus->exp_2->accept(this);
+	llvm::Value *L = codegen(eplus->exp_1);
+	llvm::Value *R = codegen(eplus->exp_2);
+
+	val = builder.CreateAdd(L, R, "addtmp");
 
 	std::cout << "Leave visitEPlus" << std::endl;
 }
@@ -409,8 +415,10 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 	/* Code For EMinus Goes Here */
 	std::cout << "Enter visitEMinus" << std::endl;
 
-	eminus->exp_1->accept(this);
-	eminus->exp_2->accept(this);
+	llvm::Value *L = codegen(eminus->exp_1);
+	llvm::Value *R = codegen(eminus->exp_2);
+
+	val = builder.CreateSub(L, R, "subtmp");
 
 	std::cout << "Leave visitEMinus" << std::endl;
 }
@@ -423,8 +431,10 @@ void CodeGen::visitELt(ELt *elt) {
 	/* Code For ELt Goes Here */
 	std::cout << "Enter visitELt" << std::endl;
 
-	elt->exp_1->accept(this);
-	elt->exp_2->accept(this);
+	llvm::Value *L = codegen(elt->exp_1);
+	llvm::Value *R = codegen(elt->exp_2);
+
+	val = builder.CreateFCmpULT(L, R, "cmptmp");
 
 	std::cout << "Leave visitELt" << std::endl;
 }
@@ -433,8 +443,10 @@ void CodeGen::visitEGt(EGt *egt) {
 	/* Code For EGt Goes Here */
 	std::cout << "Enter visitEGt" << std::endl;
 
-	egt->exp_1->accept(this);
-	egt->exp_2->accept(this);
+	llvm::Value *L = codegen(egt->exp_1);
+	llvm::Value *R = codegen(egt->exp_2);
+
+	val = builder.CreateFCmpULT(L, R, "cmptmp");
 
 	std::cout << "Leave visitEGt" << std::endl;
 }
@@ -443,8 +455,10 @@ void CodeGen::visitELtEq(ELtEq *elteq) {
 	/* Code For ELtEq Goes Here */
 	std::cout << "Enter visitELtEq" << std::endl;
 
-	elteq->exp_1->accept(this);
-	elteq->exp_2->accept(this);
+	llvm::Value *L = codegen(elteq->exp_1);
+	llvm::Value *R = codegen(elteq->exp_2);
+
+	val = builder.CreateFCmpULE(L, R, "cmptmp");
 
 	std::cout << "Leave visitELtEq" << std::endl;
 }
@@ -453,8 +467,10 @@ void CodeGen::visitEGtEq(EGtEq *egteq) {
 	/* Code For EGtEq Goes Here */
 	std::cout << "Enter visitEGtEq" << std::endl;
 
-	egteq->exp_1->accept(this);
-	egteq->exp_2->accept(this);
+	llvm::Value *L = codegen(egteq->exp_1);
+	llvm::Value *R = codegen(egteq->exp_2);
+
+	val = builder.CreateFCmpUGE(L, R, "cmptmp");
 
 	std::cout << "Leave visitEGtEq" << std::endl;
 }
@@ -463,8 +479,10 @@ void CodeGen::visitEEq(EEq *eeq) {
 	/* Code For EEq Goes Here */
 	std::cout << "Enter visitEEq" << std::endl;
 
-	eeq->exp_1->accept(this);
-	eeq->exp_2->accept(this);
+	llvm::Value *L = codegen(eeq->exp_1);
+	llvm::Value *R = codegen(eeq->exp_2);
+
+	val = builder.CreateFCmpUEQ(L, R, "cmptmp");
 
 	std::cout << "Leave visitEEq" << std::endl;
 }
@@ -473,8 +491,10 @@ void CodeGen::visitENEq(ENEq *eneq) {
 	/* Code For ENEq Goes Here */
 	std::cout << "Enter visitENEq" << std::endl;
 
-	eneq->exp_1->accept(this);
-	eneq->exp_2->accept(this);
+	llvm::Value *L = codegen(eneq->exp_1);
+	llvm::Value *R = codegen(eneq->exp_2);
+
+	val = builder.CreateFCmpUNE(L, R, "cmptmp");
 
 	std::cout << "Leave visitENEq" << std::endl;
 }
@@ -483,8 +503,10 @@ void CodeGen::visitEAnd(EAnd *eand) {
 	/* Code For EAnd Goes Here */
 	std::cout << "Enter visitEAnd" << std::endl;
 
-	eand->exp_1->accept(this);
-	eand->exp_2->accept(this);
+	llvm::Value *L = codegen(eand->exp_1);
+	llvm::Value *R = codegen(eand->exp_2);
+
+	val = builder.CreateAnd(L, R, "cmptmp");
 
 	std::cout << "Leave visitEAnd" << std::endl;
 }
@@ -493,8 +515,10 @@ void CodeGen::visitEOr(EOr *eor) {
 	/* Code For EOr Goes Here */
 	std::cout << "Enter visitEOr" << std::endl;
 
-	eor->exp_1->accept(this);
-	eor->exp_2->accept(this);
+	llvm::Value *L = codegen(eor->exp_1);
+	llvm::Value *R = codegen(eor->exp_2);
+
+	val = builder.CreateOr(L, R, "cmptmp");
 
 	std::cout << "Leave visitEOr" << std::endl;
 }
