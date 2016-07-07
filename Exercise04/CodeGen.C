@@ -361,7 +361,10 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	/* Code For EIncr Goes Here */
 	std::cout << "Enter visitEIncr" << std::endl;
 
-	eincr->exp_->accept(this);
+	llvm::Value *L = codegen(eincr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+
+	val = builder.CreateAdd(L, One, "multmp");
 
 	std::cout << "Leave visitEIncr" << std::endl;
 }
@@ -370,9 +373,10 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	/* Code For EDecr Goes Here */
 	std::cout << "Enter visitsEDecr" << std::endl;
 
-	edecr->exp_->accept(this);
+	llvm::Value *L = codegen(edecr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	std::cout << "Leave visitsEDecr" << std::endl;
+	val = builder.CreateSub(L, One, "multmp");
 }
 
 void CodeGen::visitETimes(ETimes *etimes) {
