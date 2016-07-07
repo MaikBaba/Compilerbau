@@ -66,7 +66,7 @@ void CodeGen::visitListDef(ListDef* listdef) {
 /* Funktionsdefinition besuchen*/
 void CodeGen::visitDFun(DFun *dfun) {
 	std::cout << indent << "Enter visitDFun: " << dfun->id_ << std::endl;
-	std::cout << indent << "---------------- " << dfun->id_ << std::endl;
+	std::cout << indent << "---------------- " << std::endl;
 	indent.push_back('\t');
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
@@ -74,17 +74,20 @@ void CodeGen::visitDFun(DFun *dfun) {
 	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
 	if (TheFunction != nullptr) {
 		indent.pop_back();
-		std::cout << indent << "Leave visitDFun" << std::endl;
+		std::cout << indent << "Leave visitDFun (redecl)" << std::endl;
 		return;
 	}
 	// Baue llvm Funktionstyp auf
 	// Hole dazu die richtigen Argumenttypen via typegen
+	std::cout << indent << "Signatur: " << dfun->id_ << std::endl;
+	indent.push_back('\t');
 	vector<llvm::Type*> protoArgs;
 
+	// Füge Argumente in NamedValues ein
+	// Zunächst alle vorhandenen löschen (block scope)
+	//NamedValues.clear();
 	for (ListArg::iterator arg_it = dfun->listarg_->begin(); arg_it != dfun->listarg_->end(); arg_it++) {
 		ADecl* adecl = (ADecl*) *arg_it;
-		std::cout << indent << "Signatur: " << dfun->id_ << std::endl;
-		indent.push_back('\t');
 		protoArgs.push_back(typegen(adecl->type_));
 	}
 	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(typegen(dfun->type_), protoArgs, false);
@@ -92,11 +95,16 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 	llvm::Function* llvm_fun = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
+	cout << "FunType: " << endl;
+	llvm_fun->dump();
 
 	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
+	// In NamedValue eintragen
 	ListArg::iterator listarg = dfun->listarg_->begin();
+	NamedValues.clear();
 	for (auto &arg : llvm_fun->args()) {
 		arg.setName(((ADecl*) *listarg)->id_);
+		NamedValues[arg.getName()] = &arg;
 		listarg++;
 	}
 
@@ -104,12 +112,19 @@ void CodeGen::visitDFun(DFun *dfun) {
 	 * Branching statements müssen selbst Blöcke generieren
 	 * und den insert point ändern */
 	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(context, "entry",
-			TheFunction);
+			llvm_fun);
 	builder.SetInsertPoint(entryBlock);
 
-	// Füge Funktionsargumente in env_/NamedValues ein
-	// TODO Könnte man das auch weiter rekursiv machen?
-	//      dfun->listarg_->accept(this); und dann in visitListArg eintragen
+
+
+//	visitId(adecl->id_);
+//	if (val != nullptr) {
+//		NamedValues[adecl->id_] = val;
+//		cout << "NamedValues[" << adecl->id_ <<"] = " << val << endl;
+//	}
+//	else {
+//		// TODO Error: Variable not in scope
+//	}
 
 	// generiere Code für die Statements im Body
 	std::cout << indent << "Body:" << std::endl;
@@ -148,6 +163,7 @@ void CodeGen::visitEApp(EApp *eapp) {
 			it != eapp->listexp_->end(); ++it) {
 		llvm_call_args.push_back(codegen(*it));
 	}
+
 	val = builder.CreateCall(calleeF, llvm_call_args, "callMeMaybe");
 
 	indent.pop_back();
@@ -158,8 +174,8 @@ void CodeGen::visitADecl(ADecl *adecl) {
 	/* Code For ADecl Goes Here */
 	std::cout << indent << "Enter visitADecl" << std::endl;
 	indent.push_back('\t');
-
 	val = codegen(adecl->type_);
+	// TODO
 	visitId(adecl->id_);
 
 	indent.pop_back();
@@ -193,8 +209,8 @@ void CodeGen::visitSInit(SInit *sinit) {
 	std::cout << indent << "Enter visitSInit" << std::endl;
 
 	sinit->type_->accept(this);
-	visitId(sinit->id_);
-	sinit->exp_->accept(this);
+	codegen(sinit->exp_);
+	NamedValues[sinit->id_] = val;
 
 	std::cout << indent << "Leave visitSInit" << std::endl;
 }
@@ -309,6 +325,9 @@ void CodeGen::visitEInt(EInt *eint) {
 	std::cout << indent << "Enter visitEInt" << std::endl;
 	indent.push_back('\t');
 
+	cout << "------------ Module Content ----------------" << endl;
+	TheModule.dump();
+	cout << "--------------------------------------------" << endl;
 	visitInteger(eint->integer_);
 
 	indent.pop_back();
@@ -650,7 +669,10 @@ void CodeGen::visitListId(ListId* listid)
 void CodeGen::visitId(Id x) {
 	/* Code for Id Goes Here */
 	std::cout << indent << "Enter visitId" << std::endl;
-	val = // TODO lookup in named values
+	indent.push_back('\t');
+	val = NamedValues[x];
+	std::cout << indent << "Found " << x << ": " << val << std::endl;
+	indent.pop_back();
 	std::cout << indent << "Leave visitId" << std::endl;
 }
 
