@@ -29,8 +29,8 @@ int main(int argc, char ** argv)
   {
 
 	CodeGen cg;
-	llvm::Value* result = cg.codegen(parse_tree);
-//	result->dump();
+	cg.codegen(parse_tree);
+	std::cout << "==================================" << std::endl;
 	cg.printGeneratedIR();
     return 0;
   }

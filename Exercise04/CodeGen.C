@@ -11,7 +11,6 @@ CodeGen::CodeGen(void) :
 		context(llvm::getGlobalContext()),
 		TheModule("mycode", llvm::getGlobalContext()) {
 	val = nullptr;
-
 }
 
 llvm::Value* CodeGen::codegen(Visitable* v) {
@@ -45,21 +44,18 @@ void CodeGen::visitPDefs(PDefs *pdefs) {
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef) {
 
-	std::cout << "Enter visitListDef" << std::endl;
+	std::cout << indent << "Enter visitListDef" << std::endl;
+	indent.push_back('\t');
 
 	for (ListDef::iterator proto_it = listdef->begin();
 			proto_it != listdef->end(); proto_it++) {
 		DFun* proto = (DFun*) *proto_it;
 
+		string temp=proto->id_;
 		llvm::Function *f = TheModule.getFunction(proto->id_);
-		// Übersringe, falls f schon in Modul vorhanden und Argumente stimmen
-		if (f) {
-			//
-			if (f->arg_size() == proto->listarg_->size())
+		// Übersringe, falls f schon in Modul vorhanden (angenommen keine Überladung)
+		if (f != nullptr) {
 				continue;
-			else {
-				// TODO Error: Funktion existiert, aber Argumentanzahl stimmt nicht überein
-			}
 		}
 		// Baue llvm Funktionstyp auf
 		// Alle Typen sind llvm doubles
@@ -78,20 +74,27 @@ void CodeGen::visitListDef(ListDef* listdef) {
 			arg.setName(((ADecl*) *listarg)->id_);
 			listarg++;
 		}
-		std::cout << "Leave visitListDef" << std::endl;
+
+		val=codegen(proto);
 	}
+	indent.pop_back();
+	std::cout << indent << "Leave visitListDef" << std::endl;
 }
 
 /* Funktionsdefinition besuchen*/
 void CodeGen::visitDFun(DFun *dfun) {
 
-	std::cout << "Enter visitDFun" << std::endl;
+	std::cout << indent << "Enter visitDFun: " << dfun->id_ << std::endl;
+	indent.push_back('\t');
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
 	// TODO Polymorphe Funktionen
-	llvm::Function *TheFunction = TheModule->getFunction(dfun->id_);
-	if (TheFunction)
+	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
+	if (TheFunction != nullptr) {
+		indent.pop_back();
+		std::cout << indent << "Leave visitDFun" << std::endl;
 		return;
+	}
 
 	/* generiere einen einzigen entry block
 	 * Branching statements müssen selbst Blöcke generieren
@@ -122,6 +125,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 	// fertige Funktion als "Rückgabewert" speichern
 	val = TheFunction;
 
+	indent.pop_back();
 	std::cout << "Leave visitDFun" << std::endl;
 }
 

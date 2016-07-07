@@ -33,21 +33,8 @@ INCLUDE_DIR := /usr/local/lib/llvm-3.8/include
 # Compiler flags
 # -----------------------------
 
-WFLAGS	   := -Wall -Wextra -pedantic -Wdouble-promotion -Wformat=2 -Winit-self \
-				-Wmissing-include-dirs -Wswitch-default -Wswitch-enum -Wunused-local-typedefs \
-				-Wunused -Wuninitialized -Wstrict-overflow=5 \
-				-Wundef -Wshadow -Wunsafe-loop-optimizations \
-				-Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings \
-				-Wconversion -Wlogical-op \
-				-Wmissing-field-initializers \
-				-Wmissing-format-attribute -Wpacked -Winline -Wredundant-decls \
-				-Wvector-operation-performance -Wdisabled-optimization \
-				-Wstack-protector -Wfloat-equal -Wsuggest-attribute=pure \
-				-Wsuggest-attribute=const -Wsuggest-attribute=noreturn \
-				-Wold-style-cast
-CWFLAGS	  := -Wdeclaration-after-statement -Wc++-compat -Wbad-function-cast \
-				-Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Wunsuffixed-float-constants
-#-Wzero-as-null-pointer-constant -Wpadded
+WFLAGS	   := 
+
 DEBUGFLAGS   := -g3 -O0
 RELEASEFLAGS := -g0 -O3 -flto
 CFLAGS	   := -std=c11

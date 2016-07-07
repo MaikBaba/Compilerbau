@@ -37,6 +37,7 @@ private:
         llvm::LLVMContext& context;
         llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
         map<string, llvm::Value*> NamedValues;
+        string indent=""; // für das Einrücken der Ausgabe
 
 public:
 
@@ -105,16 +106,6 @@ public:
 	void visitDouble(Double x);
 	void visitString(String x);
 	void visitIdent(Ident x);
-<<<<<<< HEAD
-=======
-
-private:
-        llvm::Value* val;
-        llvm::LLVMContext TheContext;
-        llvm::Module *TheModule; //wird in Konstruktor initialisiert
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
->>>>>>> sascha
 };
 
 #endif /* CODEGEN_H_ */
