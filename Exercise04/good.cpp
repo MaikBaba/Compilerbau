@@ -1,6 +1,8 @@
 int factr (int n) 
 {
   int a = 65;
+  a++; //= a + 2;
+
   if (a)
     return 1 ;
   else 
