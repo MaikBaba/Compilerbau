@@ -9,6 +9,7 @@
 #define CODEGEN_H_
 
 #include "Absyn.H"
+#include "CodeGenException.H"
 #include <llvm/IR/Value.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/BasicBlock.h>
