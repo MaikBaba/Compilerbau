@@ -1,51 +1,28 @@
-/*
- * CodeGen.H
- *
- *  Created on: Jun 28, 2016
- *      Author: MB
- */
+#ifndef TYPECHECKER_H_
+#define TYPECHECKER_H_
 
-#ifndef CODEGEN_H_
-#define CODEGEN_H_
+#include <set>
 
 #include "Absyn.H"
-#include <llvm/IR/Value.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/BasicBlock.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Verifier.h>
-#include <string>
-#include <vector>
-#include <map>
-#include <memory>
-#include <iostream>
 
-using namespace std;
+#include "Env.H"
+#include "BasicType.H"
+#include "FunType.H"
+#include "TypeException.H"
 
-class CodeGen : public Visitor
+class TypeChecker : public Visitor
 {
-private:
-        llvm::Value* val;
-        llvm::Type* type;
-        llvm::Module TheModule; //wird in Konstruktor initialisiert
-        llvm::LLVMContext& context;
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
-        string indent="";
 public:
 
-	CodeGen();
-    virtual ~CodeGen() = default;
+    ~TypeChecker();
+    BasicType typecheck(Visitable* v);
 
-    llvm::Value* codegen(Visitable* v);
-    llvm::Type* typegen(Visitable* v);
-    void printGeneratedIR();
+	Type* infer(Env T, Exp* e);
+
+	void check(Env T, Exp* e, Type* t);
+	void check(Env T, Stm* s);
+	void check(Env T, Def* d);
+	void check(Program* p);
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
@@ -106,6 +83,13 @@ public:
 	void visitDouble(Double x);
 	void visitString(String x);
 	void visitIdent(Ident x);
+
+private:
+        Env env_;
+        BasicType ty_;
+        bool working_fun_has_return_statement;
+        DFun* working_fun;
+
 };
 
-#endif /* CODEGEN_H_ */
+#endif

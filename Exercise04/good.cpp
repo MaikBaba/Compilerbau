@@ -1,6 +1,7 @@
 int factr (int n) 
 {
-  if (n<2)
+  int a = 65;
+  if (a)
     return 1 ;
   else 
     return (n * factr(n-1));
