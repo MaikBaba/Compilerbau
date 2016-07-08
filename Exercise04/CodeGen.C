@@ -98,8 +98,9 @@ void CodeGen::visitDFun(DFun *dfun) {
 	ListArg::iterator listarg = dfun->listarg_->begin();
 	NamedValues.clear();
 	for (auto &arg : TheFunction->args()) {
-		arg.setName(((ADecl*) *listarg)->id_);
-		NamedValues[arg.getName()] = &arg;
+		string argName = ((ADecl*) *listarg)->id_;
+		arg.setName(argName);
+		NamedValues[argName] = &arg;
 		listarg++;
 	}
 
@@ -250,14 +251,24 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
 	// TODO je nach Typ richtigen 0 holen
-	llvm::Value* constZero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
 	llvm::Value *condExprVal = codegen(sifelse->exp_);
-	cout << "generated cond val:" << endl;
-	condExprVal->dump();
+	llvm::Type* condExprType = typegen(sifelse->exp_);
+	printGeneratedIR();
+	llvm::Type* llvm_IntType = llvm::Type::getInt32Ty(context);
+	llvm::Type* llvm_FloatType = llvm::Type::getFloatTy(context);
+
+	// Compare wird immer mit Float erstellt. Nötigenfalls konvertieren oder Fehler schmeißen
+	if (condExprType != llvm_FloatType) {
+		if (condExprType == llvm_IntType)
+			condExprVal = builder.CreateIntCast(condExprVal, llvm_FloatType, true, "castIntToFloat");
+		else
+			throw new CodeGenException("In Condition: Expression must evaluate to Float or Int32");
+	}
 	condExprVal = builder.CreateICmpNE(
 			condExprVal,
-			constZero,
+			llvm::ConstantFP::get(llvm_FloatType, 0), // compare to 0.0
 			"ifcond");
+
 //get(llvm::Type::getInt32Ty(context)
 	// Basic Blocks für then, else, merge erstellen (noch nicht einfügen)
 	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "thenBlock",
@@ -283,15 +294,7 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
 	elseBB = builder.GetInsertBlock();
 
-	cout << "------------ Module Dump ----------------" << endl;
 	printGeneratedIR();
-	cout << "-- NamedValue dump: " << endl;
-	for (auto value : NamedValues) {
-		cout << value.first;
-		value.second->dump();
-	}
-	cout << endl;
-	cout << "-------------End Module Dump ------------------------------" << endl << endl;
 
 	// merge-Block
 	currentFun->getBasicBlockList().push_back(mergeBB);
@@ -311,6 +314,7 @@ void CodeGen::visitETrue(ETrue *etrue) {
 	/* Code For ETrue Goes Here */
 	std::cout << indent << "Enter visitETrue" << std::endl;
 	indent.push_back('\t');
+	// TODO true zu 1 evaluieren -> create constant int 1
 	indent.pop_back();
 	std::cout << indent << "Leave visitETrue" << std::endl;
 }
@@ -477,7 +481,17 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 }
 
 void CodeGen::printGeneratedIR() {
+	cout << "------------------ Module Dump ------------------------------------" << endl;
 	TheModule.dump();
+	cout << "----------------- End Module Dump ---------------------------------" << endl << endl;
+
+	cout << "---------------- Named Value Dump----------------------------------" << endl;
+	for (auto entry : NamedValues) {
+		cout << "NamedValues[" << entry.first << "] : " << flush;
+		entry.second->dump();
+	}
+	cout << endl;
+	cout << "--------------- End NamedValue Dump -------------------------------" << endl << endl;
 }
 
 void CodeGen::visitELt(ELt *elt) {
@@ -706,7 +720,8 @@ void CodeGen::visitId(Id x) {
 	/* Code for Id Goes Here */
 	std::cout << indent << "Enter visitId" << std::endl;
 	indent.push_back('\t');
-	val = builder.CreateLoad(NamedValues[x], x); //benutze llvm name uniquing
+	val = NamedValues[x]; //benutze llvm name uniquing
+	//val = builder.CreateLoad(NamedValues[x], x); //benutze llvm name uniquing
 
 	std::cout << indent << "Found " << x << ": " << val << std::endl;
 	indent.pop_back();
