@@ -49,7 +49,7 @@ void CodeGen::visitPDefs(PDefs *pdefs) {
 /* Funktionsprototyp besuchen */
 void CodeGen::visitListDef(ListDef* listdef) {
 
-<<<<<<< HEAD
+
 	std::cout << indent << "Enter visitListDef" << std::endl;
 	indent.push_back('\t');
 
@@ -149,13 +149,10 @@ void CodeGen::visitEApp(EApp *eapp) {
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
 	if (!calleeF)
-		//Error: Unbekannte Funktion
-		throw new TypeException("The function " + eapp->id_ + " is not a known function.");
-	if (calleeF->arg_size() != eapp->listexp_->size()) {
-		//Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
-		throw new TypeException("number of passed Arguments for the function " + eapp->id_ + " is not correct.");
-	}
-
+		// TODO Error: Unbekannte Funktion
+		if (calleeF->arg_size() != eapp->listexp_->size()) {
+			// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+		}
 
 	std::vector<llvm::Value*> llvm_call_args;
 	for (ListExp::iterator it = eapp->listexp_->begin();

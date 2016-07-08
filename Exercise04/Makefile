@@ -99,22 +99,22 @@ $(PROJNAME_RELEASE): $(OBJFILES_RELEASE) $(SRCFILES) Makefile
 
 debug/%.o: %.c Makefile
 	@echo "  [ Compiling $< (DEBUG) ]" && \
-	mkdir debug/$(dir $<) -p && \
+	mkdir -p debug/$(dir $<) && \
 	$(CC) $(CFLAGS) $(WFLAGS) $(CWFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
 
 debug/%.o: %.C Makefile
 	@echo "  [ Compiling $< (DEBUG) ]" && \
-	mkdir debug/$(dir $<) -p && \
-	$(CXX) $(CXXFLAGS) $(WFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
+	mkdir -p debug/$(dir $<) && \
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 release/%.o: %.c Makefile
 	@echo "  [ Compiling $< (RELEASE) ]" && \
-	mkdir release/$(dir $<) -p && \
+	mkdir -p release/$(dir $<) && \
 	$(CC) $(CFLAGS) $(WFLAGS) $(CWFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
 
 release/%.o: %.C Makefile
 	@echo "  [ Compiling $< (RELEASE) ]" && \
-	mkdir release/$(dir $<) -p && \
+	mkdir -p release/$(dir $<) && \
 	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
 
 Lexer.C: CPP.l
