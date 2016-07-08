@@ -304,7 +304,7 @@ indent.push_back('\t');
 		else
 			throw new CodeGenException("In Condition: Expression must evaluate to Float or Int32");
 	}
-	condExprVal = builder.CreateICmpNE(
+	condExprVal = builder.CreateFCmpONE(
 			condExprVal,
 			llvm::ConstantFP::get(llvm_FloatType, 0), // compare to 0.0
 			"ifcond");
