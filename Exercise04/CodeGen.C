@@ -88,21 +88,24 @@ void CodeGen::visitDFun(DFun *dfun) {
 	}
 	// Baue llvm Funktionstyp auf
 	// Hole dazu die richtigen Argumenttypen via typegen
+	// Für jedes Argument Speicher allokieren und in NamedValues eintragen
 	std::cout << indent << "Signatur: " << dfun->id_ << std::endl;
-	
-
-
 	vector<llvm::Type*> protoArgs;
 	for (ListArg::iterator arg_it = dfun->listarg_->begin(); arg_it != dfun->listarg_->end(); arg_it++) {
 		ADecl* adecl = (ADecl*) *arg_it;
-		protoArgs.push_back(typegen(adecl->type_));
+		llvm::Type* argType = typegen(adecl->type_);
+		protoArgs.push_back(argType);
+		llvm::AllocaInst* alloc = builder.CreateAlloca(argType,0, "test");
+		NamedValues[adecl->id_] = alloc;
 	}
-	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(typegen(dfun->type_), protoArgs, false);
+	llvm::Type* llvm_ret_type = typegen(dfun->type_);
+	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm_ret_type, protoArgs, false);
 	
 
 
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 	TheFunction = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
+
 
 	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
 	// In NamedValue eintragen
@@ -111,7 +114,6 @@ void CodeGen::visitDFun(DFun *dfun) {
 	for (auto &arg : TheFunction->args()) {
 		string argName = ((ADecl*) *listarg)->id_;
 		arg.setName(argName);
-		NamedValues[argName] = &arg;
 		listarg++;
 	}
 
@@ -121,6 +123,10 @@ void CodeGen::visitDFun(DFun *dfun) {
 	llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(context, "entry",
 			TheFunction);
 	builder.SetInsertPoint(entryBlock);
+
+	// TODO variable für return type am Anfang des blocks generieren ?
+	// Funktions-Id wird name des rückgabewerts
+	//NamedValues[dfun->id_] = builder.CreateAlloca(llvm_ret_type, 0, dfun->id_ + "_ret");
 
 	// generiere Code für die Statements im Body
 	std::cout << indent << "Body:" << std::endl;
@@ -226,7 +232,8 @@ indent.push_back('\t');
 	// TODO welche Variablen brauchen wir nicht?
 	llvm::Value* expr = codegen(sinit->exp_);
 	llvm::Type*  type = typegen(sinit->type_);
-	llvm::Value* alloc = builder.CreateAlloca(type,0, sinit->id_);
+
+	llvm::AllocaInst* alloc = builder.CreateAlloca(type,0, sinit->id_);
 	llvm::Value* store = builder.CreateStore(expr, alloc);
 
 	NamedValues[sinit->id_] = alloc;
@@ -296,17 +303,33 @@ indent.push_back('\t');
 	printGeneratedIR();
 	llvm::Type* llvm_IntType = llvm::Type::getInt32Ty(context);
 	llvm::Type* llvm_FloatType = llvm::Type::getFloatTy(context);
+	llvm::Type* llvm_DoubleType = llvm::Type::getDoubleTy(context);
 
-	// Compare wird immer mit Float erstellt. Nötigenfalls konvertieren oder Fehler schmeißen
-	if (condExprType != llvm_FloatType) {
-		if (condExprType == llvm_IntType)
-			condExprVal = builder.CreateIntCast(condExprVal, llvm_FloatType, true, "castIntToFloat");
-		else
+	// Compare wird immer mit Double erstellt. Nötigenfalls konvertieren oder Fehler schmeißen
+	if(condExprType != llvm_DoubleType) {
+		if(condExprType == llvm_FloatType) {
+			//convert float to double
+			condExprVal = builder.CreateFPExt(condExprVal, llvm_DoubleType, "castFloatToDouble");
+		}
+		else if (condExprType == llvm_IntType) {
+			// convert int to double
+			condExprVal = builder.CreateIntCast(condExprVal, llvm_DoubleType, true, "castIntToDouble");
+		}
+		else {
 			throw new CodeGenException("In Condition: Expression must evaluate to Float or Int32");
+		}
 	}
+
+	cout << "HALLOOOOOOOOO " << endl;
+	llvm::Constant::getNullValue(llvm::Type::getDoubleTy(context))->dump();
+	condExprVal->getType()->dump();
+	condExprVal->dump();
+
+	llvm::ConstantFP::get(llvm_DoubleType, 0)->dump();
 	condExprVal = builder.CreateFCmpONE(
 			condExprVal,
-			llvm::ConstantFP::get(llvm_FloatType, 0), // compare to 0.0
+			//llvm::ConstantFP::get(context, llvm::APFloat(0.0)), // compare to 0.0
+			llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0),
 			"ifcond");
 
 //get(llvm::Type::getInt32Ty(context)
@@ -903,11 +926,8 @@ void CodeGen::visitChar(Char x) {
 	std::cout << indent << "Enter visitChar" << std::endl;
 	indent.push_back('\t');
 
-
-
+	// TODO visitchar
 	
-
-	indent.pop_back();
 	std::cout << indent << "Leave visitChar" << std::endl;
 }
 
@@ -915,10 +935,8 @@ void CodeGen::visitDouble(Double x) {
 	/* Code for Double Goes Here */
 	std::cout << indent << "Enter visitDouble" << std::endl;
 	indent.push_back('\t');
-
-
-
 	
+	val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), x);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitDouble" << std::endl;
