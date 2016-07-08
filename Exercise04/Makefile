@@ -45,7 +45,7 @@ INCLUDEFLAGS := $(foreach inc,$(INCLUDE_DIR),-I $(inc))
 # Linker flags
 # -----------------------------
 
-LFLAGS := -L/usr/lib/llvm-3.8/lib
+LFLAGS := -L/usr/local/lib/llvm-3.8/lib
 LIBS   := LLVM-3.8
 
 # -----------------------------
@@ -115,7 +115,7 @@ release/%.o: %.c Makefile
 release/%.o: %.C Makefile
 	@echo "  [ Compiling $< (RELEASE) ]" && \
 	mkdir -p release/$(dir $<) && \
-	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 Lexer.C: CPP.l
 	${FLEX} -oLexer.C CPP.l
