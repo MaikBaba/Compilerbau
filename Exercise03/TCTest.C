@@ -8,7 +8,7 @@
 #include "Parser.H"
 #include "Printer.H"
 #include "Absyn.H"
-#include "CodeGen.H"
+#include ""
 
 int main(int argc, char ** argv)
 {
@@ -25,14 +25,24 @@ int main(int argc, char ** argv)
   else input = stdin;
   /* The default entry point is used. For other options see Parser.H */
   Program* parse_tree = pProgram(input);
-  if (parse_tree != nullptr)
+  if (parse_tree)
   {
+    try {
 
-	CodeGen cg;
-	cg.codegen(parse_tree);
-	std::cout << "==================================" << std::endl;
-	cg.printGeneratedIR();
+      CodeGen* cg = new TypeChecker();
+      tc->typecheck(parse_tree);
+
+      printf("OK");
+      } catch (TypeException* e) {
+          printf("TYPE ERROR");
+          std::cout<< e->what();
+          cout<< endl;
+          return 1;
+      }
+
     return 0;
   }
   return 1;
 }
+
+
