@@ -47,6 +47,7 @@ public:
     llvm::Value* codegen(Visitable* v);
     llvm::Type* typegen(Visitable* v);
     void printGeneratedIR();
+    llvm::AllocaInst* allocateStoreName(string argName, llvm::Type* argType, llvm::Value* value = nullptr);
 
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
