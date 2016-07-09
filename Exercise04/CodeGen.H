@@ -9,6 +9,7 @@
 #define CODEGEN_H_
 
 #include "Absyn.H"
+#include "CodeGenException.H"
 #include <llvm/IR/Value.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/BasicBlock.h>
@@ -36,7 +37,7 @@ private:
         llvm::Module TheModule; //wird in Konstruktor initialisiert
         llvm::LLVMContext& context;
         llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
-        map<string, llvm::Value*> NamedValues;
+        map<string, llvm::AllocaInst*> NamedValues;
         string indent="";
 public:
 

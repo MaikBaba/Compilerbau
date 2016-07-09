@@ -29,9 +29,15 @@ int main(int argc, char ** argv)
   {
 
 	CodeGen cg;
-	cg.codegen(parse_tree);
-	std::cout << "==================================" << std::endl;
-	cg.printGeneratedIR();
+	try {
+
+		cg.codegen(parse_tree);
+		std::cout << "==================================" << std::endl;
+		cg.printGeneratedIR();
+	} catch (CodeGenException *e) {
+		cout << e->what() << endl;
+		return 1;
+	}
     return 0;
   }
   return 1;
