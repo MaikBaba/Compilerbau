@@ -45,7 +45,7 @@ INCLUDEFLAGS := $(foreach inc,$(INCLUDE_DIR),-I $(inc))
 # Linker flags
 # -----------------------------
 
-LFLAGS := -L/usr/lib/llvm-3.8/lib
+LFLAGS := -L/usr/local/lib/llvm-3.8/lib
 LIBS   := LLVM-3.8
 
 # -----------------------------
@@ -99,23 +99,23 @@ $(PROJNAME_RELEASE): $(OBJFILES_RELEASE) $(SRCFILES) Makefile
 
 debug/%.o: %.c Makefile
 	@echo "  [ Compiling $< (DEBUG) ]" && \
-	mkdir debug/$(dir $<) -p && \
+	mkdir -p debug/$(dir $<) && \
 	$(CC) $(CFLAGS) $(WFLAGS) $(CWFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
 
 debug/%.o: %.C Makefile
 	@echo "  [ Compiling $< (DEBUG) ]" && \
-	mkdir debug/$(dir $<) -p && \
-	$(CXX) $(CXXFLAGS) $(WFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
+	mkdir -p debug/$(dir $<) && \
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(DEBUGFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 release/%.o: %.c Makefile
 	@echo "  [ Compiling $< (RELEASE) ]" && \
-	mkdir release/$(dir $<) -p && \
+	mkdir -p release/$(dir $<) && \
 	$(CC) $(CFLAGS) $(WFLAGS) $(CWFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
 
 release/%.o: %.C Makefile
 	@echo "  [ Compiling $< (RELEASE) ]" && \
-	mkdir release/$(dir $<) -p && \
-	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -MMD -MP -c $< -o $@
+	mkdir -p release/$(dir $<) && \
+	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 Lexer.C: CPP.l
 	${FLEX} -oLexer.C CPP.l
