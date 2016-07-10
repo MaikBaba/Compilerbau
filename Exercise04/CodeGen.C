@@ -95,27 +95,13 @@ void CodeGen::visitDFun(DFun *dfun) {
 		ADecl* adecl = (ADecl*) *arg_it;
 		llvm::Type* argType = typegen(adecl->type_);
 		protoArgs.push_back(argType);
-		llvm::AllocaInst* alloc = builder.CreateAlloca(argType,0, "test");
-		NamedValues[adecl->id_] = alloc;
 	}
+
 	llvm::Type* llvm_ret_type = typegen(dfun->type_);
 	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm_ret_type, protoArgs, false);
 	
-
-
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 	TheFunction = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
-
-
-	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
-	// In NamedValue eintragen
-	ListArg::iterator listarg = dfun->listarg_->begin();
-	NamedValues.clear();
-	for (auto &arg : TheFunction->args()) {
-		string argName = ((ADecl*) *listarg)->id_;
-		arg.setName(argName);
-		listarg++;
-	}
 
 	/* generiere einen einzigen entry block
 	 * Branching statements müssen selbst Blöcke generieren
@@ -124,28 +110,28 @@ void CodeGen::visitDFun(DFun *dfun) {
 			TheFunction);
 	builder.SetInsertPoint(entryBlock);
 
-	// TODO variable für return type am Anfang des blocks generieren ?
-	// Funktions-Id wird name des rückgabewerts
-	//NamedValues[dfun->id_] = builder.CreateAlloca(llvm_ret_type, 0, dfun->id_ + "_ret");
+	// Namen der Argumente setzen
+	// Lokale Kopie erstellen und Name der Kopie eintragen
+	ListArg::iterator listarg = dfun->listarg_->begin();
+	NamedValues.clear();
+	for (auto &arg : TheFunction->args()) {
+		string argName = ((ADecl*) *listarg)->id_;
+		arg.setName(argName);
+		allocateStoreName(argName, arg.getType(), &arg);
+		listarg++;
+	}
 
 	// generiere Code für die Statements im Body
 	std::cout << indent << "Body:" << std::endl;
-	
-
 	val = codegen(dfun->liststm_);
 	
-
-
 	// Note: Return statement wird auch rekursiv generiert
-
 
 	// Validieren
 	llvm::verifyFunction(*TheFunction);
 
 	// fertige Funktion als "Rückgabewert" speichern
 	val = TheFunction;
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitDFun" << std::endl;
@@ -232,12 +218,7 @@ indent.push_back('\t');
 	// TODO welche Variablen brauchen wir nicht?
 	llvm::Value* expr = codegen(sinit->exp_);
 	llvm::Type*  type = typegen(sinit->type_);
-
-	llvm::AllocaInst* alloc = builder.CreateAlloca(type,0, sinit->id_);
-	llvm::Value* store = builder.CreateStore(expr, alloc);
-
-	NamedValues[sinit->id_] = alloc;
-	val = alloc; //TODO oder store?
+	val = allocateStoreName(sinit->id_,type, expr);
 	indent.pop_back();
 	std::cout << indent << "Leave visitSInit" << std::endl;
 }
@@ -840,9 +821,9 @@ void CodeGen::visitType_string(Type_string *type_string) {
 
 void CodeGen::visitListArg(ListArg* listarg) {
 	std::cout << indent << "Enter visitListArg" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
-	// Diese Aufgabe wird von visistDFun übernommen
+	// wird von DFun übernommen
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitListArg" << std::endl;
@@ -852,7 +833,6 @@ void CodeGen::visitListStm(ListStm* liststm)
 {
 	std::cout << indent << "Enter visitListStm" << std::endl;
 	indent.push_back('\t');
-
 
 	for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
 	{
@@ -966,4 +946,13 @@ void CodeGen::visitIdent(Ident x) {
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitIdent" << std::endl;
+}
+
+// Falls zwar Speicher allokiert, aber kein Wert gespeichert werden soll -> Nullptr übergeben
+llvm::AllocaInst* CodeGen::allocateStoreName(const string argName, llvm::Type* argType, llvm::Value* value) {
+	llvm::AllocaInst* alloc = builder.CreateAlloca(argType,0, argName);
+	NamedValues[argName] = alloc;
+	if (value != nullptr)
+		llvm::Value* store = builder.CreateStore(value, alloc);
+	return alloc;
 }
