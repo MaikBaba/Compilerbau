@@ -461,16 +461,27 @@ void CodeGen::visitEId(EId *eid) {
 void CodeGen::visitEPIncr(EPIncr *epincr) {
 	/* Code For EPIncr Goes Here */
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
 	
 
 
 	llvm::Value *expr = codegen(epincr->exp_);
+	std::cout << "This point is reached1" << std::endl;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+	std::cout << "This point is reached2" << std::endl;
+	llvm::Value *Trial = llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1);
+	std::cout << "This point is reached3" << std::endl;
 
-	llvm::Value* tmp = builder.CreateAdd(expr, One, "Incr");
-	val = builder.CreateStore(tmp,expr);
+	printType(expr->getType()->getTypeID());
+	printType(One->getType()->getTypeID());
+	printType(Trial->getType()->getTypeID());
+
+	//llvm::Value* tmp = builder.CreateAdd(expr, One, "Incr");
+	llvm::Value* tmp2 = builder.CreateFAdd(expr, Trial, "IncrFP");
+	std::cout << "This point is reached4" << std::endl;
+	printType(tmp2->getType()->getTypeID());
+	val = builder.CreateStore(expr, tmp2);
 
 	
 
