@@ -449,7 +449,7 @@ indent.push_back('\t');
 	llvm::Value *expr = codegen(epincr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	llvm::Value* tmp = builder.CreateAdd(expr, One, "incrtmp");
+	llvm::Value* tmp = builder.CreateAdd(expr, One, "Incr");
 	val = builder.CreateStore(tmp,expr);
 
 	
@@ -481,7 +481,7 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	llvm::Value *L = codegen(eincr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateAdd(L, One, "addtmp");
+	val = builder.CreateAdd(L, One, "Incr");
 	// TODO store
 	
 
@@ -499,7 +499,7 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	llvm::Value *L = codegen(edecr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateSub(L, One, "multmp");
+	val = builder.CreateSub(L, One, "Decr");
 
 	
 
@@ -516,7 +516,7 @@ void CodeGen::visitETimes(ETimes *etimes) {
 	llvm::Value *L = codegen(etimes->exp_1);
 	llvm::Value *R = codegen(etimes->exp_2);
 
-	val = builder.CreateMul(L, R, "multmp");
+	val = builder.CreateMul(L, R, "Mul");
 
 	
 
@@ -534,7 +534,7 @@ void CodeGen::visitEDiv(EDiv *ediv) {
 	llvm::Value *L = codegen(ediv->exp_1);
 	llvm::Value *R = codegen(ediv->exp_2);
 
-	val = builder.CreateExactUDiv(L, R, "divtmp");
+	val = builder.CreateExactUDiv(L, R, "Div");
 
 	
 
@@ -552,7 +552,7 @@ void CodeGen::visitEPlus(EPlus *eplus) {
 	llvm::Value *L = codegen(eplus->exp_1);
 	llvm::Value *R = codegen(eplus->exp_2);
 
-	val = builder.CreateAdd(L, R, "addtmp");
+	val = builder.CreateAdd(L, R, "Add");
 
 	
 
@@ -570,7 +570,7 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 	llvm::Value *L = codegen(eminus->exp_1);
 	llvm::Value *R = codegen(eminus->exp_2);
 
-	val = builder.CreateSub(L, R, "subtmp");
+	val = builder.CreateSub(L, R, "Sub");
 
 	
 
