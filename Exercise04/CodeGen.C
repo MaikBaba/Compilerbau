@@ -117,7 +117,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 	for (auto &arg : TheFunction->args()) {
 		string argName = ((ADecl*) *listarg)->id_;
 		arg.setName(argName);
-		allocateStoreName(argName, arg.getType(), &arg);
+		val = allocateStoreName(argName, arg.getType(), &arg);
 		listarg++;
 	}
 
@@ -299,7 +299,6 @@ indent.push_back('\t');
 		}
 	}
 
-	cout << "HALLOOOOOOOOO " << endl;
 	llvm::Constant::getNullValue(llvm::Type::getDoubleTy(context))->dump();
 	condExprVal->getType()->dump();
 	condExprVal->dump();
@@ -434,7 +433,9 @@ indent.push_back('\t');
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	llvm::Value* tmp = builder.CreateAdd(expr, One, "incr");
-	val = builder.CreateStore(tmp,expr);
+	builder.CreateStore(tmp,expr);
+
+	val = expr;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -449,7 +450,9 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	llvm::Value* tmp = builder.CreateSub(L, One, "decr");
-	val = builder.CreateStore(tmp,L);
+	builder.CreateStore(tmp,L);
+
+	val = L;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPDecr" << std::endl;
