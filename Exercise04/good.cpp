@@ -12,5 +12,10 @@ int factr (int n)
 int main () 
 {
   int i = factr(7);
+
+  while(i == true) {
+	i = false;
+  }
+
   return 0 ;
 }

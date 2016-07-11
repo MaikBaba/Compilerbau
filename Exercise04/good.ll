@@ -41,6 +41,18 @@ define i32 @main() #1 {
   store i32 0, i32* %1, align 4
   %2 = call i32 @_Z5factri(i32 7)
   store i32 %2, i32* %i, align 4
+  br label %3
+
+; <label>:3                                       ; preds = %6, %0
+  %4 = load i32, i32* %i, align 4
+  %5 = icmp eq i32 %4, 1
+  br i1 %5, label %6, label %7
+
+; <label>:6                                       ; preds = %3
+  store i32 0, i32* %i, align 4
+  br label %3
+
+; <label>:7                                       ; preds = %3
   ret i32 0
 }
 
