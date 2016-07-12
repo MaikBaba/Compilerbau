@@ -1,6 +1,8 @@
 int main() {
-	double i = 1;
-	int j = 1;
+	int i ;
+	double j = 1;
+	bool b = 1;
+	i = 1;
 	while(i == j) {
 		i = 0;
 	}
