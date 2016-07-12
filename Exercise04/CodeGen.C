@@ -96,7 +96,6 @@ void CodeGen::visitDFun(DFun *dfun) {
 		llvm::Type* argType = typegen(adecl->type_);
 		protoArgs.push_back(argType);
 	}
-
 	llvm::Type* llvm_ret_type = typegen(dfun->type_);
 	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm_ret_type, protoArgs, false);
 	
@@ -216,7 +215,7 @@ void CodeGen::visitSInit(SInit *sinit) {
 indent.push_back('\t');
 
 	llvm::Value* expr = codegen(sinit->exp_);
-	llvm::Type*  type = typegen(sinit->type_);
+	llvm::Type*  type = expr->getType();
 	val = allocateStoreName(sinit->id_,type, expr);
 	indent.pop_back();
 	std::cout << indent << "Leave visitSInit" << std::endl;
@@ -278,8 +277,7 @@ indent.push_back('\t');
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
 	llvm::Value *condExprVal = codegen(sifelse->exp_);
-	llvm::Type* condExprType = typegen(sifelse->exp_);
-	printGeneratedIR();
+	llvm::Type* condExprType = condExprVal->getType();
 	llvm::Type* llvm_IntType = llvm::Type::getInt32Ty(context);
 	llvm::Type* llvm_FloatType = llvm::Type::getFloatTy(context);
 	llvm::Type* llvm_DoubleType = llvm::Type::getDoubleTy(context);
@@ -298,15 +296,23 @@ indent.push_back('\t');
 			throw new CodeGenException("In Condition: Expression must evaluate to Float or Int32");
 		}
 	}
+	printGeneratedIR();
 
-	llvm::Constant::getNullValue(llvm::Type::getDoubleTy(context))->dump();
+	cout << "constant get double 0.0:\t" << flush;
+	llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0)->dump();
+
+	cout << "constant get double 0.0 type:\t" << flush;
+	llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0)->getType()->dump();
+
+	cout << "condExprVal type:\t\t" << flush;
 	condExprVal->getType()->dump();
+
+	cout << "condExprVal:\t\t\t" << flush;
 	condExprVal->dump();
 
-	llvm::ConstantFP::get(llvm_DoubleType, 0)->dump();
+	//llvm::LoadInst * tmp = builder.CreateLoad(llvm_DoubleType,condExprVal, "tmp");
 	condExprVal = builder.CreateFCmpONE(
 			condExprVal,
-			//llvm::ConstantFP::get(context, llvm::APFloat(0.0)), // compare to 0.0
 			llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0),
 			"ifcond");
 
@@ -448,6 +454,12 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 
 	llvm::Value *L = codegen(epdecr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+	std::cout << "L Type: " << endl;
+	L->getType()->dump();
+	std::cout << "One Type: " << endl;
+	One->getType()-> dump();
+	std::cout << L->getType()->isPointerTy()<< endl;
+	std::cout << One->getType()->isPointerTy()<< endl;
 
 	llvm::Value* tmp = builder.CreateSub(L, One, "decr");
 	builder.CreateStore(tmp,L);
@@ -845,8 +857,11 @@ void CodeGen::visitId(Id x) {
 	std::cout << indent << "Enter visitId" << std::endl;
 	indent.push_back('\t');
 	val = NamedValues[x]; //benutze llvm name uniquing
-	//val = builder.CreateLoad(NamedValues[x], x); //benutze llvm name uniquing
-	std::cout << indent << "Found " << x << ": " << val << std::endl;
+	std::cout << indent << "Found " << x << ": " << val << std::flush;
+	val->dump();
+	val = builder.CreateLoad(val, x);
+	std::cout << indent << "Loaded into " << std::flush;
+	val->dump();
 	
 
 	indent.pop_back();
