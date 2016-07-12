@@ -77,7 +77,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
-	// TODO Polymorphe Funktionen
+	// Note: unterstützt keine polymorphen Funktionen
 	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
 	if (TheFunction != nullptr) {
 		
@@ -117,7 +117,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 	for (auto &arg : TheFunction->args()) {
 		string argName = ((ADecl*) *listarg)->id_;
 		arg.setName(argName);
-		allocateStoreName(argName, arg.getType(), &arg);
+		val = allocateStoreName(argName, arg.getType(), &arg);
 		listarg++;
 	}
 
@@ -215,7 +215,6 @@ void CodeGen::visitSInit(SInit *sinit) {
 	std::cout << indent << "Enter visitSInit" << std::endl;
 indent.push_back('\t');
 
-	// TODO welche Variablen brauchen wir nicht?
 	llvm::Value* expr = codegen(sinit->exp_);
 	llvm::Type*  type = typegen(sinit->type_);
 	val = allocateStoreName(sinit->id_,type, expr);
@@ -298,7 +297,6 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	// TODO je nach Typ richtigen 0 holen
 	llvm::Value *condExprVal = codegen(sifelse->exp_);
 	llvm::Type* condExprType = typegen(sifelse->exp_);
 	printGeneratedIR();
@@ -321,7 +319,6 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 		}
 	}
 
-	cout << "HALLOOOOOOOOO " << endl;
 	llvm::Constant::getNullValue(llvm::Type::getDoubleTy(context))->dump();
 	condExprVal->getType()->dump();
 	condExprVal->dump();
@@ -380,7 +377,7 @@ void CodeGen::visitETrue(ETrue *etrue) {
 	/* Code For ETrue Goes Here */
 	std::cout << indent << "Enter visitETrue" << std::endl;
 	indent.push_back('\t');
-	// TODO true zu 1 evaluieren -> create constant int 1
+	// TODO true zu 1 evaluieren -> create constant int 1 (gibt es 1 bit ints)
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitETrue" << std::endl;
@@ -391,7 +388,7 @@ void CodeGen::visitEFalse(EFalse *efalse) {
 	std::cout << indent << "Enter visitEFalse" << std::endl;
 	indent.push_back('\t');
 
-
+	// TODO false zu 0 evaluieren (gibt es 1 bit ints in llvm?)
 	
 
 	indent.pop_back();
@@ -403,11 +400,7 @@ void CodeGen::visitEInt(EInt *eint) {
 	std::cout << indent << "Enter visitEInt" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitInteger(eint->integer_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEInt" << std::endl;
@@ -418,11 +411,7 @@ void CodeGen::visitEDouble(EDouble *edouble) {
 	std::cout << indent << "Enter visitEDouble" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitDouble(edouble->double_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEDouble" << std::endl;
@@ -434,8 +423,9 @@ void CodeGen::visitEString(EString *estring) {
 	indent.push_back('\t');
 
 
+	// TODO Error "No string support"
 
-	visitString(estring->string_);
+	//visitString(estring->string_);
 
 	
 
@@ -448,11 +438,7 @@ void CodeGen::visitEId(EId *eid) {
 	std::cout << indent << "Enter visitEId" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitId(eid->id_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEId" << std::endl;
@@ -463,16 +449,13 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
 indent.push_back('\t');
 
-	
-
-
 	llvm::Value *expr = codegen(epincr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	llvm::Value* tmp = builder.CreateAdd(expr, One, "Incr");
-	val = builder.CreateStore(tmp,expr);
+	llvm::Value* tmp = builder.CreateAdd(expr, One, "incr");
+	builder.CreateStore(tmp,expr);
 
-	
+	val = expr;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -483,9 +466,13 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	std::cout << indent << "Enter visitEPDecr" << std::endl;
 	indent.push_back('\t');
 
+	llvm::Value *L = codegen(epdecr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	epdecr->exp_->accept(this);
-	
+	llvm::Value* tmp = builder.CreateSub(L, One, "decr");
+	builder.CreateStore(tmp,L);
+
+	val = L;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPDecr" << std::endl;
@@ -500,7 +487,6 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	val = builder.CreateAdd(L, One, "Incr");
-	// TODO store111
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEIncr" << std::endl;
@@ -516,6 +502,7 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 
 	val = builder.CreateSub(L, One, "Decr");
 
+	indent.pop_back();
 	std::cout << "Leave visitEDecr" << std::endl;
 }
 
@@ -527,7 +514,7 @@ void CodeGen::visitETimes(ETimes *etimes) {
 	llvm::Value *L = codegen(etimes->exp_1);
 	llvm::Value *R = codegen(etimes->exp_2);
 
-	val = builder.CreateFMul(L, R);
+	val = builder.CreateMul(L, R, "Mul");
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitETimes" << std::endl;
@@ -887,7 +874,7 @@ void CodeGen::visitChar(Char x) {
 	std::cout << indent << "Enter visitChar" << std::endl;
 	indent.push_back('\t');
 
-	// TODO visitchar
+	// TODO error no char support
 	
 	std::cout << indent << "Leave visitChar" << std::endl;
 }
@@ -909,7 +896,7 @@ void CodeGen::visitString(String x) {
 	indent.push_back('\t');
 
 
-
+	// TODO error no string support
 	
 
 	indent.pop_back();
