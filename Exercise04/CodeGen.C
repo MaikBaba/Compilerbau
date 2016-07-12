@@ -215,7 +215,8 @@ void CodeGen::visitSInit(SInit *sinit) {
 indent.push_back('\t');
 
 	llvm::Value* expr = codegen(sinit->exp_);
-	llvm::Type*  type = expr->getType();
+	llvm::Type*  type = typegen(sinit->type_);//expr->getType();
+	type->dump();
 	val = allocateStoreName(sinit->id_,type, expr);
 	indent.pop_back();
 	std::cout << indent << "Leave visitSInit" << std::endl;

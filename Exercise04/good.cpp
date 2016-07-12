@@ -1,17 +1,15 @@
 int factr (int n) 
 {
-  double a = 65.0;
+  double a = 65;
   a++; //= a + 2;
   a--;
   
-  if (a)
-    return 1 ;
-  else 
-    return (n * factr(n-1));
+
 }
 
 int main () 
 {
+	double x = 5;
   int i = factr(7);
   return 0 ;
 }
