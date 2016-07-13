@@ -247,9 +247,9 @@ void CodeGen::visitSWhile(SWhile *swhile) {
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	llvm::BasicBlock *checkBB = llvm::BasicBlock::Create(context, "while_check");
-	llvm::BasicBlock *whileBB = llvm::BasicBlock::Create(context, "while_body");
-	llvm::BasicBlock *endBB = llvm::BasicBlock::Create(context, "continue");
+	llvm::BasicBlock *checkBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *whileBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *endBB = llvm::BasicBlock::Create(context);
 
 	builder.CreateBr(checkBB);
 
@@ -324,9 +324,9 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 
 
 	// Basic Blocks für then, else, merge erstellen (noch nicht einfügen)
-	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "thenBlock", currentFun);
-	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "elseBlock");
-	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBlock");
+	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "", currentFun);
+	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context);
 
 	// Entry block mit Conditional-Branch abschließen
 	builder.CreateCondBr(condExpr, thenBB, elseBB);
@@ -498,9 +498,14 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	getAsReference = true;
 	llvm::Value *L = codegen(eincr->exp_);
 	getAsReference = false;
-	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateAdd(L, One);
+	if(L->getType() == llvm::Type::getDoubleTy(context)) {
+		val = builder.CreateFAdd(L, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	}
+	else {
+		val = builder.CreateAdd(L, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+	}
+
 	builder.CreateStore(val, L);
 
 	indent.pop_back();
@@ -515,9 +520,14 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	getAsReference = true;
 	llvm::Value *L = codegen(edecr->exp_);
 	getAsReference = false;
-	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateSub(L, One);
+	if(L->getType() == llvm::Type::getDoubleTy(context)) {
+		val = builder.CreateFSub(L, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	}
+	else {
+		val = builder.CreateSub(L, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+	}
+
 	builder.CreateStore(val, L);
 
 	indent.pop_back();
@@ -666,7 +676,7 @@ void CodeGen::visitELt(ELt *elt) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, R);
 	}
 
 	indent.pop_back();
@@ -693,7 +703,7 @@ void CodeGen::visitEGt(EGt *egt) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, R);
 	}
 
 	indent.pop_back();
@@ -720,7 +730,7 @@ void CodeGen::visitELtEq(ELtEq *elteq) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, R);
 	}
 
 	indent.pop_back();
@@ -747,10 +757,8 @@ void CodeGen::visitEGtEq(EGtEq *egteq) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
 	}
-
-	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEGtEq" << std::endl;
@@ -761,22 +769,30 @@ void CodeGen::visitEEq(EEq *eeq) {
 	std::cout << indent << "Enter visitEEq" << std::endl;
 	indent.push_back('\t');
 
+	std::cout << "Test" << std::endl;
 	llvm::Value *L = codegen(eeq->exp_1);
+	std::cout << "Test0" << std::endl;
 	llvm::Value *R = codegen(eeq->exp_2);
 
+	std::cout << "Test1" << std::endl;
 	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
 	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() ==llvm::Type::TypeID::DoubleTyID) {
+		std::cout << "Test2" << std::endl;
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, R);
 	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() ==llvm::Type::TypeID::IntegerTyID) {
+		std::cout << "Test3" << std::endl;
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, L, R);
 	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		std::cout << "Test4" << std::endl;
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, float_conv);
 	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		std::cout << "Test5" << std::endl;
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, L, R);
+		std::cout << "Test6" << std::endl;
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, R);
 	}
 
 	indent.pop_back();
@@ -803,7 +819,7 @@ void CodeGen::visitENEq(ENEq *eneq) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, float_conv, R);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, R);
 	}
 
 	indent.pop_back();
