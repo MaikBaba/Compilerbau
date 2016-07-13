@@ -450,17 +450,31 @@ void CodeGen::visitEId(EId *eid) {
 void CodeGen::visitEPIncr(EPIncr *epincr) {
 	/* Code For EPIncr Goes Here */
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
+	// lade den Wert den zum bearbeiten
+	llvm::Value* tmp = codegen(epincr->exp_);
+
+	// Check variable type
+	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
+		tmp = builder.CreateFAdd(tmp,
+								llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0),
+								"incr");
+	}
+	else {
+		tmp = builder.CreateAdd(tmp,
+								llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1),
+								"incr");
+	}
+
+	// Hole die Referenz um tmp zurückzuschreiben
 	getAsReference = true;
-	llvm::Value *expr = codegen(epincr->exp_);
+	llvm::Value *ref = codegen(epincr->exp_);
 	getAsReference = false;
-	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+	builder.CreateStore(tmp,ref);
 
-	llvm::Value* tmp = builder.CreateAdd(expr, One, "incr");
-	builder.CreateStore(tmp,expr);
-
-	val = expr;
+	// Den schon geladenen wert zurückgeben
+	val = tmp;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -471,6 +485,7 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	std::cout << indent << "Enter visitEPDecr" << std::endl;
 	indent.push_back('\t');
 
+	getAsReference = true;
 	llvm::Value *L = codegen(epdecr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 	std::cout << "L Type: " << endl;
