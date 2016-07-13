@@ -32,10 +32,13 @@ int main(int argc, char ** argv)
 	try {
 
 		cg.codegen(parse_tree);
-		std::cout << "==================================" << std::endl;
+		std::cout << std::endl << std::endl
+				  << "==================================================================="
+				  << std::endl << std::endl;
+
 		cg.printGeneratedIR();
 	} catch (CodeGenException *e) {
-		cout << e->what() << endl;
+		cout << "Error: " << e->what() << endl;
 		return 1;
 	}
     return 0;

@@ -21,7 +21,7 @@ int main() {
 	}
 
 	if (j) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
-		i=2;
+		j = factr(i);
 	}else{}
 
 	return i;
