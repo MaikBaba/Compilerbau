@@ -1,7 +1,9 @@
 int main() {
-	double i = 1;
-	int j = 1;
-	while(i == j) {
+	int i ;
+	double j = 1;
+	i = 1;
+	bool b = true;
+	while(i == j++) {
 		i = 0;
 	}
 	return 1;

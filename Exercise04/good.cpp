@@ -1,17 +1,17 @@
 int factr (int n) 
 {
-  double a = 65.0;	
-  a--; //= a + 2;
-  a++;
+  double a = 65;
+  double b = 100.02;
+  a = 10;
+  a++; //= a + 2;
+  a--;
+  
 
-  if (true)
-    return 1 ;
-  else 
-    return (n * factr(n-1));
 }
 
 int main () 
 {
+	double x = 5;
   int i = factr(7);
 
   while(i == true) {
@@ -19,5 +19,9 @@ int main ()
   }
 
   return 0 ;
+<<<<<<< HEAD
 
 }	
+=======
+}
+>>>>>>> origin/sascha
