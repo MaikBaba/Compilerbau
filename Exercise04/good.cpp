@@ -5,7 +5,6 @@ int factr (int n)
   a = 10;
   a++; //= a + 2;
   a--;
-  
 
 }
 

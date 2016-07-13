@@ -442,6 +442,7 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 
 	getAsReference = true;
 	llvm::Value *L = codegen(epincr->exp_);
+	getAsReference = false;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	llvm::Value* tmp = builder.CreateAdd(L, One);
@@ -460,6 +461,7 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 
 	getAsReference = true;
 	llvm::Value *L = codegen(epdecr->exp_);
+	getAsReference = false;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	llvm::Value* tmp = builder.CreateSub(L, One);
@@ -478,6 +480,7 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 
 	getAsReference = true;
 	llvm::Value *L = codegen(eincr->exp_);
+	getAsReference = false;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	val = builder.CreateAdd(L, One);
@@ -494,6 +497,7 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 
 	getAsReference = true;
 	llvm::Value *L = codegen(edecr->exp_);
+	getAsReference = false;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
 	val = builder.CreateSub(L, One);
@@ -847,11 +851,11 @@ void CodeGen::visitId(Id x) {
 	indent.push_back('\t');
 
 	val = NamedValues[x]; //benutze llvm name uniquing
-	std::cout << indent << "Found " << x << ": " << val << std::flush;
-	if (!getAsReference)
+	std::cout << indent << "Found " << x << ": " << val << endl;
+	if (!getAsReference) {
 		val = builder.CreateLoad(val, x);
-	std::cout << indent << "Loaded into " << std::flush;val->dump();
-	
+		std::cout << indent << "Loaded into " << std::flush;val->dump();
+	}
 	indent.pop_back();
 	std::cout << indent << "Leave visitId" << std::endl;
 }

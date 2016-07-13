@@ -7,9 +7,11 @@ define i32 @main() #0 {
   %1 = alloca i32, align 4
   %i = alloca i32, align 4
   %j = alloca double, align 8
+  %b = alloca i8, align 1
   store i32 0, i32* %1, align 4
   store double 1.000000e+00, double* %j, align 8
   store i32 1, i32* %i, align 4
+  store i8 1, i8* %b, align 1
   br label %2
 
 ; <label>:2                                       ; preds = %8, %0
@@ -18,7 +20,7 @@ define i32 @main() #0 {
   %5 = load double, double* %j, align 8
   %6 = fadd double %5, 1.000000e+00
   store double %6, double* %j, align 8
-  %7 = fcmp oeq double %4, %6
+  %7 = fcmp oeq double %4, %5
   br i1 %7, label %8, label %9
 
 ; <label>:8                                       ; preds = %2
