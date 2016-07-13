@@ -121,8 +121,11 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// Note: Return statement wird auch rekursiv generiert
 
-	// Validieren
-	llvm::verifyFunction(*TheFunction);
+	// Validieren. Gibt ggf. Fehlermeldung aus
+    llvm::raw_ostream* stream;
+	cout << "verify Function success (0=success): ";
+	llvm::verifyFunction(*TheFunction, stream);
+	cout << stream << endl;
 
 	// fertige Funktion als "Rückgabewert" speichern
 	val = TheFunction;
@@ -245,9 +248,9 @@ void CodeGen::visitSWhile(SWhile *swhile) {
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	llvm::BasicBlock *checkBB = llvm::BasicBlock::Create(context);
-	llvm::BasicBlock *whileBB = llvm::BasicBlock::Create(context);
-	llvm::BasicBlock *endBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *checkBB = llvm::BasicBlock::Create(context, "while_check");
+	llvm::BasicBlock *whileBB = llvm::BasicBlock::Create(context, "while_body");
+	llvm::BasicBlock *endBB = llvm::BasicBlock::Create(context, "continue");
 
 	builder.CreateBr(checkBB);
 
@@ -255,17 +258,14 @@ void CodeGen::visitSWhile(SWhile *swhile) {
 	builder.SetInsertPoint(checkBB);
 	llvm::Value *con = codegen(swhile->exp_);
 	builder.CreateCondBr(con, whileBB, endBB);
-	checkBB = builder.GetInsertBlock();
 
 	currentFun->getBasicBlockList().push_back(whileBB);
 	builder.SetInsertPoint(whileBB);
 	llvm::Value* stm = codegen(swhile->stm_);
 	builder.CreateBr(checkBB);
-	whileBB = builder.GetInsertBlock();
 
 	currentFun->getBasicBlockList().push_back(endBB);
 	builder.SetInsertPoint(endBB);
-	endBB = builder.GetInsertBlock();
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitSWhile" << std::endl;
@@ -288,44 +288,49 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	indent.push_back('\t');
 
 	// Hole die Funktion, für die wir gerade Code generieren
-	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	llvm::Function* currentFun = currentBlock->getParent();
 
-	llvm::Value *condExprVal = codegen(sifelse->exp_);
-	llvm::Type* condExprType = condExprVal->getType();
+	llvm::Value *condExpr = codegen(sifelse->exp_);
+	llvm::Type* condExprType = condExpr->getType();
+	llvm::Type* llvm_BoolType = llvm::Type::getInt1Ty(context);
 	llvm::Type* llvm_IntType = llvm::Type::getInt32Ty(context);
-	llvm::Type* llvm_FloatType = llvm::Type::getFloatTy(context);
 	llvm::Type* llvm_DoubleType = llvm::Type::getDoubleTy(context);
 
-	// Compare wird immer mit Double erstellt. Nötigenfalls konvertieren oder Fehler schmeißen
-	if(condExprType != llvm_DoubleType) {
-		if(condExprType == llvm_FloatType) {
-			//convert float to double
-			condExprVal = builder.CreateFPExt(condExprVal, llvm_DoubleType, "castFloatToDouble");
-		}
-		else if (condExprType == llvm_IntType) {
-			// convert int to double
-			condExprVal = builder.CreateIntCast(condExprVal, llvm_DoubleType, true, "castIntToDouble");
-		}
-		else {
-			throw new CodeGenException("In Condition: Expression must evaluate to Float or Int32");
-		}
+	// Compare value vorbereiten
+
+		// int compare 0
+	if (condExprType == llvm_IntType) {
+			condExpr = builder.CreateICmpNE(
+					condExpr,
+					llvm::ConstantInt::get(llvm_IntType, 0), "ifcond");
 	}
+		// double compare 0.0
+	else if(condExprType == llvm_DoubleType) {
+		condExpr = builder.CreateFCmpONE(
+				condExpr,
+				llvm::ConstantFP::get(llvm_DoubleType, 0.0),
+				"ifcond");
+	}	// bool
+	else if (condExprType == llvm_BoolType) {
+		//nichts zu tun, kann bool direkt auswerten
+	}
+
+	else {
+			throw new CodeGenException("In Condition: Expression must evaluate to Double, Int32 or Bool");
+	}
+	//debug
 	printGeneratedIR();
 
 
-	condExprVal = builder.CreateFCmpONE(
-			condExprVal,
-			llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0),
-			"ifcond");
 
-//get(llvm::Type::getInt32Ty(context)
 	// Basic Blocks für then, else, merge erstellen (noch nicht einfügen)
 	llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "thenBlock", currentFun);
 	llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(context, "elseBlock");
 	llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBlock");
 
 	// Entry block mit Conditional-Branch abschließen
-	builder.CreateCondBr(condExprVal, thenBB, elseBB);
+	builder.CreateCondBr(condExpr, thenBB, elseBB);
 
 	/*** Einzelteile generieren ***/
 
@@ -342,17 +347,17 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
 	elseBB = builder.GetInsertBlock();
 
+	// debug
 	printGeneratedIR();
 
 	// merge-Block
 	currentFun->getBasicBlockList().push_back(mergeBB);
-	printGeneratedIR();
 	builder.SetInsertPoint(mergeBB);
-	llvm::PHINode *phiStatement = builder.CreatePHI(
-			//llvm::Type::getDoubleTy(context), 2, "merge");
-			llvm::Type::getInt32Ty(context), 2, "merge");
-	phiStatement->addIncoming(thenVal, thenBB); //wenn wir aus then-Block kommen, übernimm thenValue
-	phiStatement->addIncoming(elseVal, elseBB); //wenn wir aus else-Block kommen, übernimm elseValue
+//	llvm::PHINode *phiStatement = builder.CreatePHI(
+//			//llvm::Type::getDoubleTy(context), 2, "merge");
+//			llvm::Type::getInt32Ty(context), 2, "merge");
+//	phiStatement->addIncoming(thenVal, thenBB); //wenn wir aus then-Block kommen, übernimm thenValue
+//	phiStatement->addIncoming(elseVal, elseBB); //wenn wir aus else-Block kommen, übernimm elseValue
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitSIfElse" << std::endl;
@@ -451,8 +456,6 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 
 	// Den schon geladenen wert zurückgeben
 	val = tmp;
-	cout << "incr return: " << endl;
-	val->dump();
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -669,8 +672,6 @@ void CodeGen::visitEEq(EEq *eeq) {
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, float_conv);
 	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
 		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "cast", currentBlock);
-		cout << "debug: float_conv:" << endl;
-		float_conv->dump();
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, R, float_conv);
 	} else {
 
