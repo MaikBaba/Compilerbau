@@ -37,7 +37,7 @@ WFLAGS	   :=
 
 DEBUGFLAGS   := -g3 -O0
 RELEASEFLAGS := -g0 -O3 -flto
-CFLAGS	   := -std=c11
+CFLAGS	     := -std=c11
 CXXFLAGS	 := -std=c++11
 INCLUDEFLAGS := $(foreach inc,$(INCLUDE_DIR),-I $(inc))
 

@@ -13,5 +13,10 @@ int main ()
 {
 	double x = 5;
   int i = factr(7);
+
+  while(i == true) {
+	i = false;
+  }
+
   return 0 ;
 }

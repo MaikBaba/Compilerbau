@@ -51,6 +51,8 @@ public:
     void printGeneratedIR();
     llvm::AllocaInst* allocateStoreName(string argName, llvm::Type* argType, llvm::Value* value = nullptr);
 
+    void printType(llvm::Type::TypeID type);
+
 	void visitProgram(Program* p);
 	void visitDef(Def* p);
 	void visitArg(Arg* p);
