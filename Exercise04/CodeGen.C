@@ -227,7 +227,7 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 	indent.push_back('\t');
 
 	// Füge non-void return statement ein
-	// wichtig: darf Insertpoint nicht verändern!
+	val = codegen(sreturn->exp_);
 	val = builder.CreateRet(val);
 
 	indent.pop_back();
@@ -238,7 +238,6 @@ void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid) {
 	std::cout << indent << "Enter visitSReturnVoid" << std::endl;
 	indent.push_back('\t');
 	val = builder.CreateRetVoid();
-
 	indent.pop_back();
 	std::cout << indent << "Leave visitSReturnVoid" << std::endl;
 }
@@ -316,17 +315,6 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	}
 	printGeneratedIR();
 
-	cout << "constant get double 0.0:\t" << flush;
-	llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0)->dump();
-
-	cout << "constant get double 0.0 type:\t" << flush;
-	llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0)->getType()->dump();
-
-	cout << "condExprVal type:\t\t" << flush;
-	condExprVal->getType()->dump();
-
-	cout << "condExprVal:\t\t\t" << flush;
-	condExprVal->dump();
 
 	condExprVal = builder.CreateFCmpONE(
 			condExprVal,
@@ -485,7 +473,6 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	std::cout << indent << "Enter visitEPDecr" << std::endl;
 	indent.push_back('\t');
 
-	getAsReference = true;
 	llvm::Value *L = codegen(epdecr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 	std::cout << "L Type: " << endl;
