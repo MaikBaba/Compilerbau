@@ -18,4 +18,9 @@ int main ()
   }
 
   return 0 ;
+<<<<<<< HEAD
+
+}	
+=======
 }
+>>>>>>> origin/sascha

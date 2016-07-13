@@ -118,7 +118,7 @@ release/%.o: %.C Makefile
 	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 Lexer.C: CPP.l
-	${FLEX} -oLexer.C CPP.l
+	${FLEX} -o Lexer.C CPP.l
 
 Parser.C: CPP.y
 	${BISON} CPP.y -o Parser.C
