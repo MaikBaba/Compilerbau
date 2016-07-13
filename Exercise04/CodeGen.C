@@ -135,8 +135,6 @@ void CodeGen::visitEApp(EApp *eapp) {
 	std::cout << indent << "Enter visitEApp" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Function *calleeF = TheModule.getFunction(eapp->id_);
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
@@ -215,8 +213,7 @@ void CodeGen::visitSInit(SInit *sinit) {
 }
 
 
-void CodeGen::visitSReturn(SReturn *sreturn)
-{
+void CodeGen::visitSReturn(SReturn *sreturn) {
 	/* Code For SReturn Goes Here */
 	std::cout << indent << "Enter visitSReturn" << std::endl;
 	indent.push_back('\t');
@@ -232,7 +229,9 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid) {
 	std::cout << indent << "Enter visitSReturnVoid" << std::endl;
 	indent.push_back('\t');
+
 	val = builder.CreateRetVoid();
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitSReturnVoid" << std::endl;
 }
@@ -362,6 +361,7 @@ void CodeGen::visitETrue(ETrue *etrue) {
 	/* Code For ETrue Goes Here */
 	std::cout << indent << "Enter visitETrue" << std::endl;
 	indent.push_back('\t');
+
 	val = llvm::ConstantInt::getTrue(context);
 
 	indent.pop_back();
@@ -434,13 +434,11 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	// Check variable type
 	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
 		tmp = builder.CreateFAdd(tmp,
-								llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0),
-								"incr");
+		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
 		tmp = builder.CreateAdd(tmp,
-								llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1),
-								"incr");
+		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
 	// Hole die Referenz um tmp zurückzuschreiben
@@ -451,8 +449,6 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 
 	// Den schon geladenen wert zurückgeben
 	val = tmp;
-	cout << "incr return: " << endl;
-	val->dump();
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -469,13 +465,11 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	// Check variable type
 	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
 		tmp = builder.CreateFSub(tmp,
-								llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0),
-								"decr");
+		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
 		tmp = builder.CreateSub(tmp,
-								llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1),
-								"decr");
+		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
 	// Hole die Referenz um tmp zurückzuschreiben
@@ -533,7 +527,20 @@ void CodeGen::visitETimes(ETimes *etimes) {
 	llvm::Value *L = codegen(etimes->exp_1);
 	llvm::Value *R = codegen(etimes->exp_2);
 
-	val = builder.CreateMul(L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFMul(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateMul(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFMul(L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFMul(float_conv, R);
+	} else {
+		val = builder.CreateMul(L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitETimes" << std::endl;
@@ -547,7 +554,20 @@ void CodeGen::visitEDiv(EDiv *ediv) {
 	llvm::Value *L = codegen(ediv->exp_1);
 	llvm::Value *R = codegen(ediv->exp_2);
 
-	val = builder.CreateExactSDiv(L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateExactSDiv(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateSDiv(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateExactSDiv(L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateExactSDiv(float_conv, R);
+	} else {
+		val = builder.CreateSDiv(L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEDiv" << std::endl;
@@ -561,7 +581,20 @@ void CodeGen::visitEPlus(EPlus *eplus) {
 	llvm::Value *L = codegen(eplus->exp_1);
 	llvm::Value *R = codegen(eplus->exp_2);
 
-	val = builder.CreateFAdd(L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFAdd(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateAdd(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFAdd(L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFAdd(float_conv, R);
+	} else {
+		val = builder.CreateAdd(L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPlus" << std::endl;
@@ -575,7 +608,20 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 	llvm::Value *L = codegen(eminus->exp_1);
 	llvm::Value *R = codegen(eminus->exp_2);
 
-	val = builder.CreateFSub(L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFSub(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateSub(L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFSub(L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFSub(float_conv, R);
+	} else {
+		val = builder.CreateSub(L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEMinus" << std::endl;
@@ -603,7 +649,20 @@ void CodeGen::visitELt(ELt *elt) {
 	llvm::Value *L = codegen(elt->exp_1);
 	llvm::Value *R = codegen(elt->exp_2);
 
-	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, float_conv, R);
+	} else {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitELt" << std::endl;
@@ -617,7 +676,20 @@ void CodeGen::visitEGt(EGt *egt) {
 	llvm::Value *L = codegen(egt->exp_1);
 	llvm::Value *R = codegen(egt->exp_2);
 
-	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, float_conv, R);
+	} else {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEGt" << std::endl;
@@ -631,7 +703,20 @@ void CodeGen::visitELtEq(ELtEq *elteq) {
 	llvm::Value *L = codegen(elteq->exp_1);
 	llvm::Value *R = codegen(elteq->exp_2);
 
-	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, float_conv, R);
+	} else {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitELtEq" << std::endl;
@@ -644,6 +729,21 @@ void CodeGen::visitEGtEq(EGtEq *egteq) {
 
 	llvm::Value *L = codegen(egteq->exp_1);
 	llvm::Value *R = codegen(egteq->exp_2);
+
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, float_conv, R);
+	} else {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, L, R);
+	}
 
 	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
 
@@ -665,15 +765,13 @@ void CodeGen::visitEEq(EEq *eeq) {
 	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() ==llvm::Type::TypeID::IntegerTyID) {
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, L, R);
 	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
-		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "cast", currentBlock);
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
 		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, float_conv);
 	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
-		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "cast", currentBlock);
-		cout << "debug: float_conv:" << endl;
-		float_conv->dump();
-		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, R, float_conv);
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, float_conv, R);
 	} else {
-
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, L, R);
 	}
 
 	indent.pop_back();
@@ -688,7 +786,20 @@ void CodeGen::visitENEq(ENEq *eneq) {
 	llvm::Value *L = codegen(eneq->exp_1);
 	llvm::Value *R = codegen(eneq->exp_2);
 
-	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, R);
+	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context), "", currentBlock);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, float_conv, R);
+	} else {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, L, R);
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitENEq" << std::endl;
@@ -754,12 +865,10 @@ void CodeGen::visitType_bool(Type_bool *type_bool) {
 	std::cout << indent << "Enter visitType_bool" << std::endl;
 	indent.push_back('\t');
 
-
-
 	type = llvm::Type::getInt1Ty(context);
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_bool" << std::endl;
-
 }
 
 void CodeGen::visitType_int(Type_int *type_int) {
@@ -767,9 +876,8 @@ void CodeGen::visitType_int(Type_int *type_int) {
 	std::cout << indent << "Enter visitType_int" << std::endl;
 	indent.push_back('\t');
 
-
-
 	type = llvm::Type::getInt32Ty(context);
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_int" << std::endl;
 }
@@ -778,7 +886,9 @@ void CodeGen::visitType_double(Type_double *type_double) {
 	/* Code For Type_double Goes Here */
 	std::cout << indent << "Enter visitType_double" << std::endl;
 	indent.push_back('\t');
+
 	type = llvm::Type::getDoubleTy(context);
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_double" << std::endl;
 }
@@ -788,10 +898,7 @@ void CodeGen::visitType_void(Type_void *type_void) {
 	std::cout << indent << "Enter visitType_void" << std::endl;
 	indent.push_back('\t');
 
-
 	type = llvm::Type::getVoidTy(context);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_void" << std::endl;
@@ -802,9 +909,8 @@ void CodeGen::visitType_string(Type_string *type_string) {
 	std::cout << indent << "Enter visitType_string" << std::endl;
 	indent.push_back('\t');
 
-
-
 	std::cout << indent << "Error no String Support" << std::endl; //TODO
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_string" << std::endl;
 }
@@ -829,7 +935,6 @@ void CodeGen::visitListStm(ListStm* liststm)
 		(*i)->accept(this);
 	}
 	
-
 	indent.pop_back();
 	std::cout << indent << "Leave visitListStm" << std::endl;
 }
@@ -838,8 +943,6 @@ void CodeGen::visitListExp(ListExp* listexp)
 {
 	std::cout << indent << "Enter visitListExp" << std::endl;
 	indent.push_back('\t');
-
-
 
 	for (ListExp::iterator i = listexp->begin() ; i != listexp->end() ; ++i)
 	{
@@ -853,7 +956,7 @@ void CodeGen::visitListExp(ListExp* listexp)
 void CodeGen::visitListId(ListId* listid)
 {
 	std::cout << indent << "Enter visitListId" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
 	for (ListId::iterator i = listid->begin() ; i != listid->end() ; ++i)
 	{
@@ -875,6 +978,7 @@ void CodeGen::visitId(Id x) {
 		val = builder.CreateLoad(val, x);
 		std::cout << indent << "Loaded into " << std::flush;val->dump();
 	}
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitId" << std::endl;
 }
