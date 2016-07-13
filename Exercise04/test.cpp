@@ -20,8 +20,14 @@ int main() {
 		i = 1; // -1 gibt syntax fehler
 	}
 
-	if (j) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
-		i=2;
+	//if (i >= 0) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
+	if (true) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
+		int x = factr(i);
+	}
+	else {}		// if ohne else gibt syntaxfehler
+
+	if (d == 1) {
+		d++;
 	}else{}
 
 	return i;
