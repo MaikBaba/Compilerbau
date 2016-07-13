@@ -19,7 +19,11 @@ llvm::Value* CodeGen::codegen(Visitable* v) {
 }
 
 llvm::Type* CodeGen::typegen(Visitable* v) {
+	cout << indent << "Enter TypeGen" << endl;
+	cout << indent <<"--------------" << endl;
 	v->accept(this);
+	cout  << indent << "Leave TypeGen" << endl;
+	cout << indent <<"--------------" << endl;
 	return type;
 }
 
@@ -314,7 +318,6 @@ indent.push_back('\t');
 	cout << "condExprVal:\t\t\t" << flush;
 	condExprVal->dump();
 
-	//llvm::LoadInst * tmp = builder.CreateLoad(llvm_DoubleType,condExprVal, "tmp");
 	condExprVal = builder.CreateFCmpONE(
 			condExprVal,
 			llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 0.0),
@@ -718,8 +721,10 @@ void CodeGen::visitEAss(EAss *eass) {
 	indent.push_back('\t');
 
 
-
+	getAsReference = true;
 	llvm::Value* var = codegen(eass->exp_1);
+	getAsReference = false;
+	var->dump();
 	llvm::Value* expr = codegen(eass->exp_2);
 	builder.CreateStore(expr, var);
 
@@ -863,9 +868,9 @@ void CodeGen::visitId(Id x) {
 	val = NamedValues[x]; //benutze llvm name uniquing
 	std::cout << indent << "Found " << x << ": " << val << std::flush;
 	val->dump();
-	val = builder.CreateLoad(val, x);
-	std::cout << indent << "Loaded into " << std::flush;
-	val->dump();
+	if (!getAsReference)
+		val = builder.CreateLoad(val, x);
+	std::cout << indent << "Loaded into " << std::flush;val->dump();
 	
 
 	indent.pop_back();

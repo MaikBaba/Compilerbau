@@ -38,7 +38,9 @@ private:
         llvm::LLVMContext& context;
         llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
         map<string, llvm::AllocaInst*> NamedValues;
-        string indent="";
+        string indent=""; // für die Einrückung der Baumdarstellung
+        bool getAsReference = false; // wird in visitId geprüft
+        							 // kann vor Aufruf von codegen gesetzt werden
 public:
 
 	CodeGen();
