@@ -77,7 +77,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 
 	// Überspringen, wenn für diese Funktion schon Code generiert wurde
-	// TODO Polymorphe Funktionen
+	// Note: unterstützt keine polymorphen Funktionen
 	llvm::Function *TheFunction = TheModule.getFunction(dfun->id_);
 	if (TheFunction != nullptr) {
 		
@@ -95,27 +95,13 @@ void CodeGen::visitDFun(DFun *dfun) {
 		ADecl* adecl = (ADecl*) *arg_it;
 		llvm::Type* argType = typegen(adecl->type_);
 		protoArgs.push_back(argType);
-		llvm::AllocaInst* alloc = builder.CreateAlloca(argType,0, "test");
-		NamedValues[adecl->id_] = alloc;
 	}
+
 	llvm::Type* llvm_ret_type = typegen(dfun->type_);
 	llvm::FunctionType* llvm_funType = llvm::FunctionType::get(llvm_ret_type, protoArgs, false);
 	
-
-
 	// Generiere Funktion unter dem vom Prototypen gegebenen Namen im Modul
 	TheFunction = llvm::Function::Create(llvm_funType, llvm::Function::ExternalLinkage, dfun->id_, &TheModule);
-
-
-	// Zwecks besserer Lesbarkeit des IR dumps Namen der Argumente setzen
-	// In NamedValue eintragen
-	ListArg::iterator listarg = dfun->listarg_->begin();
-	NamedValues.clear();
-	for (auto &arg : TheFunction->args()) {
-		string argName = ((ADecl*) *listarg)->id_;
-		arg.setName(argName);
-		listarg++;
-	}
 
 	/* generiere einen einzigen entry block
 	 * Branching statements müssen selbst Blöcke generieren
@@ -124,28 +110,28 @@ void CodeGen::visitDFun(DFun *dfun) {
 			TheFunction);
 	builder.SetInsertPoint(entryBlock);
 
-	// TODO variable für return type am Anfang des blocks generieren ?
-	// Funktions-Id wird name des rückgabewerts
-	//NamedValues[dfun->id_] = builder.CreateAlloca(llvm_ret_type, 0, dfun->id_ + "_ret");
+	// Namen der Argumente setzen
+	// Lokale Kopie erstellen und Name der Kopie eintragen
+	ListArg::iterator listarg = dfun->listarg_->begin();
+	NamedValues.clear();
+	for (auto &arg : TheFunction->args()) {
+		string argName = ((ADecl*) *listarg)->id_;
+		arg.setName(argName);
+		allocateStoreName(argName, arg.getType(), &arg);
+		listarg++;
+	}
 
 	// generiere Code für die Statements im Body
 	std::cout << indent << "Body:" << std::endl;
-	
-
 	val = codegen(dfun->liststm_);
 	
-
-
 	// Note: Return statement wird auch rekursiv generiert
-
 
 	// Validieren
 	llvm::verifyFunction(*TheFunction);
 
 	// fertige Funktion als "Rückgabewert" speichern
 	val = TheFunction;
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitDFun" << std::endl;
@@ -229,15 +215,9 @@ void CodeGen::visitSInit(SInit *sinit) {
 	std::cout << indent << "Enter visitSInit" << std::endl;
 indent.push_back('\t');
 
-	// TODO welche Variablen brauchen wir nicht?
 	llvm::Value* expr = codegen(sinit->exp_);
 	llvm::Type*  type = typegen(sinit->type_);
-
-	llvm::AllocaInst* alloc = builder.CreateAlloca(type,0, sinit->id_);
-	llvm::Value* store = builder.CreateStore(expr, alloc);
-
-	NamedValues[sinit->id_] = alloc;
-	val = alloc; //TODO oder store?
+	val = allocateStoreName(sinit->id_,type, expr);
 	indent.pop_back();
 	std::cout << indent << "Leave visitSInit" << std::endl;
 }
@@ -247,7 +227,7 @@ void CodeGen::visitSReturn(SReturn *sreturn)
 {
 	/* Code For SReturn Goes Here */
 	std::cout << indent << "Enter visitSReturn" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
 	// Füge non-void return statement ein
 	// wichtig: darf Insertpoint nicht verändern!
@@ -269,10 +249,30 @@ void CodeGen::visitSReturnVoid(SReturnVoid *sreturnvoid) {
 void CodeGen::visitSWhile(SWhile *swhile) {
 	/* Code For SWhile Goes Here */
 	std::cout << indent << "Enter visitSWhile" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
-	swhile->exp_->accept(this);
-	swhile->stm_->accept(this);
+	// Hole die Funktion, für die wir gerade Code generieren
+	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
+
+	llvm::BasicBlock *checkBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *whileBB = llvm::BasicBlock::Create(context);
+	llvm::BasicBlock *endBB = llvm::BasicBlock::Create(context);
+
+	currentFun->getBasicBlockList().push_back(checkBB);
+	builder.SetInsertPoint(checkBB);
+	llvm::Value *con = codegen(swhile->exp_);
+	builder.CreateCondBr(con, whileBB, endBB);
+	checkBB = builder.GetInsertBlock();
+
+	currentFun->getBasicBlockList().push_back(whileBB);
+	builder.SetInsertPoint(whileBB);
+	llvm::Value* stm = codegen(swhile->stm_);
+	builder.CreateBr(checkBB);
+	whileBB = builder.GetInsertBlock();
+
+	currentFun->getBasicBlockList().push_back(endBB);
+	builder.SetInsertPoint(endBB);
+	endBB = builder.GetInsertBlock();
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitSWhile" << std::endl;
@@ -292,12 +292,11 @@ indent.push_back('\t');
 void CodeGen::visitSIfElse(SIfElse *sifelse) {
 
 	std::cout << indent << "Enter visitSIfElse" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
 	// Hole die Funktion, für die wir gerade Code generieren
 	llvm::Function* currentFun = builder.GetInsertBlock()->getParent();
 
-	// TODO je nach Typ richtigen 0 holen
 	llvm::Value *condExprVal = codegen(sifelse->exp_);
 	llvm::Type* condExprType = typegen(sifelse->exp_);
 	printGeneratedIR();
@@ -379,7 +378,7 @@ void CodeGen::visitETrue(ETrue *etrue) {
 	/* Code For ETrue Goes Here */
 	std::cout << indent << "Enter visitETrue" << std::endl;
 	indent.push_back('\t');
-	// TODO true zu 1 evaluieren -> create constant int 1
+	// TODO true zu 1 evaluieren -> create constant int 1 (gibt es 1 bit ints)
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitETrue" << std::endl;
@@ -390,7 +389,7 @@ void CodeGen::visitEFalse(EFalse *efalse) {
 	std::cout << indent << "Enter visitEFalse" << std::endl;
 	indent.push_back('\t');
 
-
+	// TODO false zu 0 evaluieren (gibt es 1 bit ints in llvm?)
 	
 
 	indent.pop_back();
@@ -402,11 +401,7 @@ void CodeGen::visitEInt(EInt *eint) {
 	std::cout << indent << "Enter visitEInt" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitInteger(eint->integer_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEInt" << std::endl;
@@ -417,11 +412,7 @@ void CodeGen::visitEDouble(EDouble *edouble) {
 	std::cout << indent << "Enter visitEDouble" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitDouble(edouble->double_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEDouble" << std::endl;
@@ -433,8 +424,9 @@ void CodeGen::visitEString(EString *estring) {
 	indent.push_back('\t');
 
 
+	// TODO Error "No string support"
 
-	visitString(estring->string_);
+	//visitString(estring->string_);
 
 	
 
@@ -447,11 +439,7 @@ void CodeGen::visitEId(EId *eid) {
 	std::cout << indent << "Enter visitEId" << std::endl;
 	indent.push_back('\t');
 
-
-
 	visitId(eid->id_);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEId" << std::endl;
@@ -460,18 +448,22 @@ void CodeGen::visitEId(EId *eid) {
 void CodeGen::visitEPIncr(EPIncr *epincr) {
 	/* Code For EPIncr Goes Here */
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
-indent.push_back('\t');
-
-	
-
+	indent.push_back('\t');
 
 	llvm::Value *expr = codegen(epincr->exp_);
+	std::cout << "This point is reached1" << std::endl;
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
+	std::cout << "This point is reached2" << std::endl;
+	llvm::Value *Trial = llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1);
+	std::cout << "This point is reached3" << std::endl;
 
-	llvm::Value* tmp = builder.CreateAdd(expr, One, "incrtmp");
+	printType(expr->getType()->getTypeID());
+	printType(One->getType()->getTypeID());
+	printType(Trial->getType()->getTypeID());
+
+	llvm::Value* tmp2 = builder.CreateFAdd(expr, Trial, "IncrFP");
+	llvm::Value* tmp = builder.CreateAdd(expr, One, "incr");
 	val = builder.CreateStore(tmp,expr);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -482,9 +474,11 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	std::cout << indent << "Enter visitEPDecr" << std::endl;
 	indent.push_back('\t');
 
+	llvm::Value *L = codegen(epdecr->exp_);
+	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	epdecr->exp_->accept(this);
-	
+	llvm::Value* tmp = builder.CreateSub(L, One, "decr");
+	val = builder.CreateStore(tmp,L);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPDecr" << std::endl;
@@ -496,13 +490,11 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	indent.push_back('\t');
 
 
-
 	llvm::Value *L = codegen(eincr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateAdd(L, One, "addtmp");
-	// TODO store
-	
+	val = builder.CreateAdd(L, One, "Incr");
+	// TODO store111
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEIncr" << std::endl;
@@ -514,14 +506,13 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	indent.push_back('\t');
 
 
-
 	llvm::Value *L = codegen(edecr->exp_);
 	llvm::Value *One = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1);
 
-	val = builder.CreateSub(L, One, "multmp");
+	val = builder.CreateSub(L, One, "Decr");
 
-	
 
+	indent.pop_back();
 	std::cout << "Leave visitEDecr" << std::endl;
 }
 
@@ -530,14 +521,11 @@ void CodeGen::visitETimes(ETimes *etimes) {
 	std::cout << indent << "Enter visitETimes" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(etimes->exp_1);
 	llvm::Value *R = codegen(etimes->exp_2);
 
-	val = builder.CreateMul(L, R, "multmp");
 
-	
+	val = builder.CreateMul(L, R, "Mul");
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitETimes" << std::endl;
@@ -548,14 +536,10 @@ void CodeGen::visitEDiv(EDiv *ediv) {
 	std::cout << indent << "Enter visitEDiv" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(ediv->exp_1);
 	llvm::Value *R = codegen(ediv->exp_2);
 
-	val = builder.CreateExactUDiv(L, R, "divtmp");
-
-	
+	val = builder.CreateExactSDiv(L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEDiv" << std::endl;
@@ -566,14 +550,10 @@ void CodeGen::visitEPlus(EPlus *eplus) {
 	std::cout << indent << "Enter visitEPlus" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eplus->exp_1);
 	llvm::Value *R = codegen(eplus->exp_2);
 
-	val = builder.CreateAdd(L, R, "addtmp");
-
-	
+	val = builder.CreateFAdd(L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPlus" << std::endl;
@@ -584,14 +564,10 @@ void CodeGen::visitEMinus(EMinus *eminus) {
 	std::cout << indent << "Enter visitEMinus" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eminus->exp_1);
 	llvm::Value *R = codegen(eminus->exp_2);
 
-	val = builder.CreateSub(L, R, "subtmp");
-
-	
+	val = builder.CreateFSub(L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEMinus" << std::endl;
@@ -616,16 +592,10 @@ void CodeGen::visitELt(ELt *elt) {
 	std::cout << indent << "Enter visitELt" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(elt->exp_1);
-	cout << "Type L: " << L->getType() << endl;
 	llvm::Value *R = codegen(elt->exp_2);
-	cout << "Type R: " << L->getType() << endl;
 
-	val = builder.CreateFCmpULT(L, R, "cmptmp");
-
-	
+	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitELt" << std::endl;
@@ -636,14 +606,10 @@ void CodeGen::visitEGt(EGt *egt) {
 	std::cout << indent << "Enter visitEGt" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(egt->exp_1);
 	llvm::Value *R = codegen(egt->exp_2);
 
-	val = builder.CreateFCmpULT(L, R, "cmptmp");
-
-	
+	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEGt" << std::endl;
@@ -654,13 +620,10 @@ void CodeGen::visitELtEq(ELtEq *elteq) {
 	std::cout << indent << "Enter visitELtEq" << std::endl;
 	indent.push_back('\t');
 
-
 	llvm::Value *L = codegen(elteq->exp_1);
 	llvm::Value *R = codegen(elteq->exp_2);
 
-	val = builder.CreateFCmpULE(L, R, "cmptmp");
-
-	
+	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitELtEq" << std::endl;
@@ -671,13 +634,10 @@ void CodeGen::visitEGtEq(EGtEq *egteq) {
 	std::cout << indent << "Enter visitEGtEq" << std::endl;
 	indent.push_back('\t');
 
-
 	llvm::Value *L = codegen(egteq->exp_1);
 	llvm::Value *R = codegen(egteq->exp_2);
 
-	val = builder.CreateFCmpUGE(L, R, "cmptmp");
-
-	
+	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEGtEq" << std::endl;
@@ -688,14 +648,24 @@ void CodeGen::visitEEq(EEq *eeq) {
 	std::cout << indent << "Enter visitEEq" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eeq->exp_1);
 	llvm::Value *R = codegen(eeq->exp_2);
 
-	val = builder.CreateFCmpUEQ(L, R, "cmptmp");
+	printType(L->getType()->getTypeID());
+	printType(R->getType()->getTypeID());
+	if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID && R->getType()->getTypeID() ==llvm::Type::TypeID::DoubleTyID) {
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::IntegerTyID && R->getType()->getTypeID() ==llvm::Type::TypeID::IntegerTyID) {
+		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_EQ, L, R);
+	} else if(L->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(R, llvm::Type::getDoubleTy(context));
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, L, float_conv);
+	} else if(R->getType()->getTypeID() == llvm::Type::TypeID::DoubleTyID) {
+		llvm::CastInst* float_conv = new llvm::SIToFPInst(L, llvm::Type::getDoubleTy(context));
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OEQ, R, float_conv);
+	} else {
 
-	
+	}
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEEq" << std::endl;
@@ -706,12 +676,10 @@ void CodeGen::visitENEq(ENEq *eneq) {
 	std::cout << indent << "Enter visitENEq" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eneq->exp_1);
 	llvm::Value *R = codegen(eneq->exp_2);
 
-	val = builder.CreateFCmpUNE(L, R, "cmptmp");
+	val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitENEq" << std::endl;
@@ -722,12 +690,10 @@ void CodeGen::visitEAnd(EAnd *eand) {
 	std::cout << indent << "Enter visitEAnd" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eand->exp_1);
 	llvm::Value *R = codegen(eand->exp_2);
 
-	val = builder.CreateAnd(L, R, "and");
+	val = builder.CreateAnd(L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEAnd" << std::endl;
@@ -738,12 +704,10 @@ void CodeGen::visitEOr(EOr *eor) {
 	std::cout << indent << "Enter visitEOr" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value *L = codegen(eor->exp_1);
 	llvm::Value *R = codegen(eor->exp_2);
 
-	val = builder.CreateOr(L, R, "or");
+	val = builder.CreateOr(L, R);
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEOr" << std::endl;
@@ -754,13 +718,9 @@ void CodeGen::visitEAss(EAss *eass) {
 	std::cout << indent << "Enter visitEAss" << std::endl;
 	indent.push_back('\t');
 
-
-
 	llvm::Value* var = codegen(eass->exp_1);
 	llvm::Value* expr = codegen(eass->exp_2);
 	builder.CreateStore(expr, var);
-
-	
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEAss" << std::endl;
@@ -840,9 +800,9 @@ void CodeGen::visitType_string(Type_string *type_string) {
 
 void CodeGen::visitListArg(ListArg* listarg) {
 	std::cout << indent << "Enter visitListArg" << std::endl;
-indent.push_back('\t');
+	indent.push_back('\t');
 
-	// Diese Aufgabe wird von visistDFun übernommen
+	// wird von DFun übernommen
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitListArg" << std::endl;
@@ -852,7 +812,6 @@ void CodeGen::visitListStm(ListStm* liststm)
 {
 	std::cout << indent << "Enter visitListStm" << std::endl;
 	indent.push_back('\t');
-
 
 	for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
 	{
@@ -898,8 +857,8 @@ void CodeGen::visitId(Id x) {
 	/* Code for Id Goes Here */
 	std::cout << indent << "Enter visitId" << std::endl;
 	indent.push_back('\t');
-	val = NamedValues[x]; //benutze llvm name uniquing
-	//val = builder.CreateLoad(NamedValues[x], x); //benutze llvm name uniquing
+	//val = NamedValues[x]; //benutze llvm name uniquing
+	val = builder.CreateLoad(NamedValues[x], x); //benutze llvm name uniquing
 	std::cout << indent << "Found " << x << ": " << val << std::endl;
 	
 
@@ -926,7 +885,7 @@ void CodeGen::visitChar(Char x) {
 	std::cout << indent << "Enter visitChar" << std::endl;
 	indent.push_back('\t');
 
-	// TODO visitchar
+	// TODO error no char support
 	
 	std::cout << indent << "Leave visitChar" << std::endl;
 }
@@ -948,7 +907,7 @@ void CodeGen::visitString(String x) {
 	indent.push_back('\t');
 
 
-
+	// TODO error no string support
 	
 
 	indent.pop_back();
@@ -966,4 +925,69 @@ void CodeGen::visitIdent(Ident x) {
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitIdent" << std::endl;
+}
+
+// Falls zwar Speicher allokiert, aber kein Wert gespeichert werden soll -> Nullptr übergeben
+llvm::AllocaInst* CodeGen::allocateStoreName(const string argName, llvm::Type* argType, llvm::Value* value) {
+	llvm::AllocaInst* alloc = builder.CreateAlloca(argType,0, argName);
+	NamedValues[argName] = alloc;
+	if (value != nullptr)
+		llvm::Value* store = builder.CreateStore(value, alloc);
+	return alloc;
+}
+
+void CodeGen::printType(llvm::Type::TypeID type) {
+	switch(type){
+	case llvm::Type::TypeID::ArrayTyID:
+		std::cout << "Array" << std::endl;
+		break;
+	case llvm::Type::TypeID::DoubleTyID:
+		std::cout << "Double" << std::endl;
+		break;
+	case llvm::Type::TypeID::FP128TyID:
+		std::cout << "FB128" << std::endl;
+		break;
+	case llvm::Type::TypeID::FloatTyID:
+		std::cout << "Float" << std::endl;
+		break;
+	case llvm::Type::TypeID::FunctionTyID:
+		std::cout << "Function" << std::endl;
+		break;
+	case llvm::Type::TypeID::HalfTyID:
+		std::cout << "Half" << std::endl;
+		break;
+	case llvm::Type::TypeID::IntegerTyID:
+		std::cout << "Integer" << std::endl;
+		break;
+	case llvm::Type::TypeID::LabelTyID:
+		std::cout << "Lable" << std::endl;
+		break;
+	case llvm::Type::TypeID::MetadataTyID:
+		std::cout << "Metadata" << std::endl;
+		break;
+	case llvm::Type::TypeID::PPC_FP128TyID:
+		std::cout << "PPC_FP128" << std::endl;
+		break;
+	case llvm::Type::TypeID::PointerTyID:
+		std::cout << "Pointer" << std::endl;
+		break;
+	case llvm::Type::TypeID::StructTyID:
+		std::cout << "Struct" << std::endl;
+		break;
+	case llvm::Type::TypeID::TokenTyID:
+		std::cout << "Token" << std::endl;
+		break;
+	case llvm::Type::TypeID::VectorTyID:
+		std::cout << "Vector" << std::endl;
+		break;
+	case llvm::Type::TypeID::VoidTyID:
+		std::cout << "VOid" << std::endl;
+		break;
+	case llvm::Type::TypeID::X86_FP80TyID:
+		std::cout << "X86_FP80" << std::endl;
+		break;
+	case llvm::Type::TypeID::X86_MMXTyID:
+		std::cout << "X86_MMX" << std::endl;
+		break;
+	}
 }

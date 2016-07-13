@@ -1,9 +1,10 @@
 int factr (int n) 
 {
-  double a = 65.0;
-  a++; //= a + 2;
+  double a = 65.0;	
+  a--; //= a + 2;
+  a++;
 
-  if (a)
+  if (true)
     return 1 ;
   else 
     return (n * factr(n-1));
@@ -12,5 +13,11 @@ int factr (int n)
 int main () 
 {
   int i = factr(7);
+
+  while(i == true) {
+	i = false;
+  }
+
   return 0 ;
-}
+
+}	

@@ -37,7 +37,7 @@ WFLAGS	   :=
 
 DEBUGFLAGS   := -g3 -O0
 RELEASEFLAGS := -g0 -O3 -flto
-CFLAGS	   := -std=c11
+CFLAGS	     := -std=c11
 CXXFLAGS	 := -std=c++11
 INCLUDEFLAGS := $(foreach inc,$(INCLUDE_DIR),-I $(inc))
 
@@ -118,7 +118,7 @@ release/%.o: %.C Makefile
 	$(CXX) $(CXXFLAGS) $(WFLAGS) $(RELEASEFLAGS) $(INCLUDEFLAGS) -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -MMD -MP -c $< -o $@
 
 Lexer.C: CPP.l
-	${FLEX} -oLexer.C CPP.l
+	${FLEX} -o Lexer.C CPP.l
 
 Parser.C: CPP.y
 	${BISON} CPP.y -o Parser.C
