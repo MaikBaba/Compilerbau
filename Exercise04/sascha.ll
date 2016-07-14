@@ -18,7 +18,7 @@ define i32 @main() #0 {
   %5 = load double, double* %j, align 8
   %6 = fadd double %5, 1.000000e+00
   store double %6, double* %j, align 8
-  %7 = fcmp olt double %4, %6
+  %7 = fcmp oeq double %4, %6
   br i1 %7, label %8, label %9
 
 ; <label>:8                                       ; preds = %2

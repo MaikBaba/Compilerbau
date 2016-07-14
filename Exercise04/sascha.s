@@ -24,8 +24,11 @@ main:                                   # @main
 	movsd	%xmm0, -16(%rbp)
 	movl	$1, -8(%rbp)
 .LBB0_1:                                # =>This Inner Loop Header: Depth=1
-	cvtsi2sdl	-8(%rbp), %xmm0
-	ucomisd	-16(%rbp), %xmm0
+	movsd	.LCPI0_0, %xmm0         # xmm0 = mem[0],zero
+	cvtsi2sdl	-8(%rbp), %xmm1
+	addsd	-16(%rbp), %xmm0
+	movsd	%xmm0, -16(%rbp)
+	ucomisd	%xmm0, %xmm1
 	jne	.LBB0_3
 	jp	.LBB0_3
 # BB#2:                                 #   in Loop: Header=BB0_1 Depth=1
