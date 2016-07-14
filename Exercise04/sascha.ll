@@ -12,22 +12,17 @@ define i32 @main() #0 {
   store i8 1, i8* %i, align 1
   br label %2
 
-; <label>:2                                       ; preds = %10, %0
-  %3 = load i8, i8* %i, align 1
-  %4 = trunc i8 %3 to i1
-  br i1 %4, label %8, label %5
+; <label>:2                                       ; preds = %8, %0
+  %3 = load i32, i32* %i, align 4
+  %4 = sitofp i32 %3 to double
+  %5 = load double, double* %j, align 8
+  %6 = fadd double %5, 1.000000e+00
+  store double %6, double* %j, align 8
+  %7 = fcmp olt double %4, %6
+  br i1 %7, label %8, label %9
 
-; <label>:5                                       ; preds = %2
-  %6 = load i8, i8* %j, align 1
-  %7 = trunc i8 %6 to i1
-  br label %8
-
-; <label>:8                                       ; preds = %5, %2
-  %9 = phi i1 [ true, %2 ], [ %7, %5 ]
-  br i1 %9, label %10, label %11
-
-; <label>:10                                      ; preds = %8
-  store i8 0, i8* %i, align 1
+; <label>:8                                       ; preds = %2
+  store i32 0, i32* %i, align 4
   br label %2
 
 ; <label>:11                                      ; preds = %8

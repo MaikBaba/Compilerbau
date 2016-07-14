@@ -9,8 +9,10 @@
 CodeGen::CodeGen(void) :
 		builder(llvm::getGlobalContext()),
 		context(llvm::getGlobalContext()),
-		TheModule("mycode", llvm::getGlobalContext()) {
-	val = nullptr;
+		TheModule("mycode", llvm::getGlobalContext()),
+		type(nullptr),
+		val(nullptr)
+{
 }
 
 llvm::Value* CodeGen::codegen(Visitable* v) {
@@ -123,7 +125,7 @@ void CodeGen::visitDFun(DFun *dfun) {
 
 	// Validieren. Gibt ggf. Fehlermeldung aus
     llvm::raw_ostream* stream;
-	cout << "verify Function success (0=success): ";
+	cout << indent << "verify Function success (0=success): ";
 	llvm::verifyFunction(*TheFunction, stream);
 	cout << stream << endl;
 
@@ -142,9 +144,9 @@ void CodeGen::visitEApp(EApp *eapp) {
 
 	//Auch hier: Angenommen, es gibt keine überladenen Funktionen
 	if (!calleeF)
-		// TODO Error: Unbekannte Funktion
+		throw new CodeGenException("Unknown function");
 		if (calleeF->arg_size() != eapp->listexp_->size()) {
-			// TODO Error: Anzahl der übergebenen Argumente stimmt nicht mit Deklaration überein
+			throw new CodeGenException("Argument mismatch");
 		}
 
 	std::vector<llvm::Value*> llvm_call_args;
@@ -207,7 +209,8 @@ void CodeGen::visitSInit(SInit *sinit) {
 	llvm::Type*  exprType = expr->getType();
 	llvm::Type*  initType = typegen(sinit->type_);
 	if (exprType != initType) {
-		// TODO cast expr to initType
+		// TODO optional: caste expr zu initType
+		throw new CodeGenException("Expression type does not match variable type");
 	}
 	val = allocateStoreName(sinit->id_,type, expr);
 
@@ -318,9 +321,6 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	else {
 			throw new CodeGenException("In Condition: Expression must evaluate to Double, Int32 or Bool");
 	}
-	//debug
-	printGeneratedIR();
-
 
 
 	// Basic Blocks für then, else, merge erstellen (noch nicht einfügen)
@@ -345,9 +345,6 @@ void CodeGen::visitSIfElse(SIfElse *sifelse) {
 	llvm::Value *elseVal = codegen(sifelse->stm_2); // generierten Value für Phi merken
 	builder.CreateBr(mergeBB); // else-Block ebenfalls mit Sprung in merge-Block abschließen
 	elseBB = builder.GetInsertBlock();
-
-	// debug
-	printGeneratedIR();
 
 	// merge-Block
 	currentFun->getBasicBlockList().push_back(mergeBB);
@@ -433,18 +430,18 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	std::cout << indent << "Enter visitEPIncr" << std::endl;
 	indent.push_back('\t');
 
-	// lade den Wert den zum bearbeiten
+	// lade den Wert den zum bearbeiten. Alten Wert zum zurückgeben merken
 	llvm::Value* tmp = codegen(epincr->exp_);
+	llvm::Value* old = tmp;
 
-	llvm::Value* tmp2;
 
 	// Check variable type
 	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
-		tmp2 = builder.CreateFAdd(tmp,
+		tmp = builder.CreateFAdd(tmp,
 		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		tmp2 = builder.CreateAdd(tmp,
+		tmp = builder.CreateAdd(tmp,
 		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
@@ -452,10 +449,10 @@ void CodeGen::visitEPIncr(EPIncr *epincr) {
 	getAsReference = true;
 	llvm::Value *ref = codegen(epincr->exp_);
 	getAsReference = false;
-	builder.CreateStore(tmp2,ref);
+	builder.CreateStore(tmp,ref);
 
-	// Den schon geladenen wert zurückgeben
-	val = tmp;
+	// Den schon geladenen wert (vor inkrementierung) zurückgeben (postfix)
+	val = old;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPIncr" << std::endl;
@@ -468,16 +465,15 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 
 	// lade den Wert den zum bearbeiten
 	llvm::Value* tmp = codegen(epdecr->exp_);
-
-	llvm::Value* tmp2;
+	llvm::Value* old = tmp;
 
 	// Check variable type
 	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
-		tmp2 = builder.CreateFSub(tmp,
+		tmp = builder.CreateFSub(tmp,
 		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		tmp2 = builder.CreateSub(tmp,
+		tmp = builder.CreateSub(tmp,
 		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
@@ -485,10 +481,10 @@ void CodeGen::visitEPDecr(EPDecr *epdecr) {
 	getAsReference = true;
 	llvm::Value *ref = codegen(epdecr->exp_);
 	getAsReference = false;
-	builder.CreateStore(tmp2,ref);
+	builder.CreateStore(tmp,ref);
 
-	// Den schon geladenen wert zurückgeben
-	val = tmp;
+	// Den schon geladenen wert (vor inkrementierung) zurückgeben (postfix)
+	val = old;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEPDecr" << std::endl;
@@ -498,6 +494,7 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	/* Code For EIncr Goes Here */
 	std::cout << indent << "Enter visitEIncr" << std::endl;
 	indent.push_back('\t');
+
 
 	// lade den Wert den zum bearbeiten
 	llvm::Value* tmp = codegen(eincr->exp_);
@@ -518,7 +515,7 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	getAsReference = false;
 	builder.CreateStore(tmp,ref);
 
-	// Den schon geladenen wert zurückgeben
+	// Den neuen wert zurückgeben
 	val = tmp;
 
 	indent.pop_back();
@@ -529,7 +526,6 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	/* Code For EDecr Goes Here */
 	std::cout << indent << "Enter visitEDecr" << std::endl;
 	indent.push_back('\t');
-
 
 	// lade den Wert den zum bearbeiten
 	llvm::Value* tmp = codegen(edecr->exp_);
@@ -550,7 +546,7 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	getAsReference = false;
 	builder.CreateStore(tmp,ref);
 
-	// Den schon geladenen wert zurückgeben
+	// Den schon neuen wert zurückgeben
 	val = tmp;
 
 	indent.pop_back();
@@ -670,7 +666,7 @@ void CodeGen::printGeneratedIR() {
 	TheModule.dump();
 	cout << "----------------- End Module Dump ---------------------------------" << endl << endl;
 
-	cout << "---------------- Named Value Dump----------------------------------" << endl;
+	cout << "---------------- Named Value Dump ----------------------------------" << endl;
 	for (auto entry : NamedValues) {
 		cout << "NamedValues[" << entry.first << "] : " << flush;
 		entry.second->dump();
@@ -715,7 +711,7 @@ void CodeGen::visitELt(ELt *elt) {
 		llvm::CastInst* bool_conv = new llvm::ZExtInst(R, llvm::Type::getInt32Ty(context), "", currentBlock);
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, bool_conv, L);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLT, L, R);
 	}
 
 	indent.pop_back();
@@ -756,7 +752,7 @@ void CodeGen::visitEGt(EGt *egt) {
 		llvm::CastInst* bool_conv = new llvm::ZExtInst(R, llvm::Type::getInt32Ty(context), "", currentBlock);
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, bool_conv, L);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGT, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGT, L, R);
 	}
 
 	indent.pop_back();
@@ -797,7 +793,7 @@ void CodeGen::visitELtEq(ELtEq *elteq) {
 		llvm::CastInst* bool_conv = new llvm::ZExtInst(R, llvm::Type::getInt32Ty(context), "", currentBlock);
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, bool_conv, L);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OLE, L, R);
 	}
 
 	indent.pop_back();
@@ -838,7 +834,7 @@ void CodeGen::visitEGtEq(EGtEq *egteq) {
 		llvm::CastInst* bool_conv = new llvm::ZExtInst(R, llvm::Type::getInt32Ty(context), "", currentBlock);
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, bool_conv, L);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SGE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_OGE, L, R);
 	}
 
 	indent.pop_back();
@@ -852,9 +848,6 @@ void CodeGen::visitEEq(EEq *eeq) {
 
 	llvm::Value *L = codegen(eeq->exp_1);
 	llvm::Value *R = codegen(eeq->exp_2);
-
-	printType(L->getType()->getTypeID());
-	printType(R->getType()->getTypeID());
 
 	llvm::BasicBlock* currentBlock = builder.GetInsertBlock();
 	if(L->getType() == llvm::Type::getDoubleTy(context) && R->getType() == llvm::Type::getDoubleTy(context)) {
@@ -923,7 +916,7 @@ void CodeGen::visitENEq(ENEq *eneq) {
 		llvm::CastInst* bool_conv = new llvm::ZExtInst(R, llvm::Type::getInt32Ty(context), "", currentBlock);
 		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, bool_conv, L);
 	} else {
-		val = builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_NE, L, R);
+		val = builder.CreateFCmp(llvm::CmpInst::Predicate::FCMP_ONE, L, R);
 	}
 
 	indent.pop_back();
@@ -1033,9 +1026,7 @@ void CodeGen::visitType_string(Type_string *type_string) {
 	/* Code For Type_string Goes Here */
 	std::cout << indent << "Enter visitType_string" << std::endl;
 	indent.push_back('\t');
-
-	std::cout << indent << "Error no String Support" << std::endl; //TODO
-
+	throw new CodeGenException("No String Support");
 	indent.pop_back();
 	std::cout << indent << "Leave visitType_string" << std::endl;
 }
@@ -1057,9 +1048,14 @@ void CodeGen::visitListStm(ListStm* liststm)
 
 	for (ListStm::iterator i = liststm->begin() ; i != liststm->end() ; ++i)
 	{
-		(*i)->accept(this);
+		val = codegen(*i);
 	}
-	
+	// TODO Wenn die Funktion kein explizites return hat
+	// (d.h. das letzte statement der liste keine return instruction ist)
+	// muss manuell ein return generiert werden (llvm braucht immer ret instruction)
+	if (!llvm::ReturnInst::classof(val))
+		builder.CreateRetVoid();
+
 	indent.pop_back();
 	std::cout << indent << "Leave visitListStm" << std::endl;
 }

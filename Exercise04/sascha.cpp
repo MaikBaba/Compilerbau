@@ -4,7 +4,7 @@ int main() {
 
 	i = 1;
 
-	while(i == j) {
+	while(i == ++j) {
 		i = 0;
 	}
 

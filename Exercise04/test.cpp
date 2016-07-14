@@ -20,6 +20,7 @@ int main() {
 		i = 1; // -1 gibt syntax fehler
 	}
 
+
 	//if (i >= 0) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
 	if (true) {			// llvm fehler: invalid operand types for cmp, ebenso für i >0
 		int x = factr(i);

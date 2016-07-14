@@ -34,13 +34,19 @@ class CodeGen : public Visitor
 private:
         llvm::Value* val;
         llvm::Type* type;
-        llvm::Module TheModule; //wird in Konstruktor initialisiert
+        llvm::Module TheModule;
         llvm::LLVMContext& context;
-        llvm::IRBuilder<> builder; //wird in Konstruktor initialisiert
+        llvm::IRBuilder<> builder;
         map<string, llvm::AllocaInst*> NamedValues;
-        string indent=""; // für die Einrückung der Baumdarstellung
-        bool getAsReference = false; // wird in visitId geprüft
-        							 // kann vor Aufruf von codegen gesetzt werden
+
+        /*** Hilfsvariablen ***/
+
+        // für die Einrückung der Baumdarstellung
+        string indent="";
+        // Legt fest, ob in visitId eine load instruction
+        // generiert werden soll
+        bool getAsReference = false;
+
 public:
 
 	CodeGen();

@@ -15,8 +15,6 @@ using namespace std;
 
 class Env {
 
-	//TODO all new function
-
 public:
 	Env();
 	~Env();
