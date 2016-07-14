@@ -495,18 +495,22 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	std::cout << indent << "Enter visitEIncr" << std::endl;
 	indent.push_back('\t');
 
-	getAsReference = true;
-	llvm::Value *L = codegen(eincr->exp_);
-	getAsReference = false;
+	// Wert laden
+	val = codegen(eincr->exp_);
 
-	if(L->getType() == llvm::Type::getDoubleTy(context)) {
-		val = builder.CreateFAdd(L, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	if(val->getType() == llvm::Type::getDoubleTy(context)) {
+		val = builder.CreateFAdd(val, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		val = builder.CreateAdd(L, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+		val = builder.CreateAdd(val, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
-	builder.CreateStore(val, L);
+	// Referenz holen und zurückschreiben
+	getAsReference = true;
+	llvm::Value *ref = codegen(eincr->exp_);
+	getAsReference = false;
+	builder.CreateStore(val, ref);
+	// Beachte: inkrementierter Wert wird zurückgegeben
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEIncr" << std::endl;
@@ -517,18 +521,22 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	std::cout << indent << "Enter visitEDecr" << std::endl;
 	indent.push_back('\t');
 
-	getAsReference = true;
-	llvm::Value *L = codegen(edecr->exp_);
-	getAsReference = false;
+	// Wert laden
+	val = codegen(edecr->exp_);
 
-	if(L->getType() == llvm::Type::getDoubleTy(context)) {
-		val = builder.CreateFSub(L, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	if(val->getType() == llvm::Type::getDoubleTy(context)) {
+		val = builder.CreateFSub(val, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		val = builder.CreateSub(L, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+		val = builder.CreateSub(val, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
-	builder.CreateStore(val, L);
+	// Referenz holen und zurückschreiben
+	getAsReference = true;
+	llvm::Value *ref = codegen(edecr->exp_);
+	getAsReference = false;
+	builder.CreateStore(val, ref);
+	// Beachte: inkrementierter Wert wird zurückgegeben
 
 	indent.pop_back();
 	std::cout << "Leave visitEDecr" << std::endl;
