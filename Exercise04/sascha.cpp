@@ -1,6 +1,6 @@
 int main() {
 	bool i;
-	bool j = 1;
+	double j = 1;
 
 	i = 1;
 
