@@ -1,12 +1,50 @@
 int main() {
-	int i;
-	double j = 1;
+	bool i;
+	bool j = 1;
 
 	i = 1;
 
-	while(i == j++) {
-	i = 0;
+	while(i == j) {
+		i = 0;
 	}
+
+        while(i != j) {
+	        i = 0;
+        }
+
+        while(i > j) {
+	        i = 0;
+        }
+
+        while(i < j) {
+	        i = 0;
+        }
+
+        while(i <= j) {
+	        i = 0;
+        }
+
+        while(i >= j) {
+	        i = 0;
+        }
+
+	i = i + 1;
+	i = i + i;
+	i = i + j;
+
+        i = i - 1;
+        i = i - i;
+        i = i - j;
+
+        i = i * 1;
+        i = i * i;
+        i = i * j;
+
+        i = i / 1;
+        i = i / i;
+        i = i / j;
+
+
 
 return 1;
 }
