@@ -495,22 +495,28 @@ void CodeGen::visitEIncr(EIncr *eincr) {
 	std::cout << indent << "Enter visitEIncr" << std::endl;
 	indent.push_back('\t');
 
-	// Wert laden
-	val = codegen(eincr->exp_);
 
-	if(val->getType() == llvm::Type::getDoubleTy(context)) {
-		val = builder.CreateFAdd(val, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	// lade den Wert den zum bearbeiten
+	llvm::Value* tmp = codegen(eincr->exp_);
+
+	// Check variable type
+	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
+		tmp = builder.CreateFAdd(tmp,
+		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		val = builder.CreateAdd(val, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+		tmp = builder.CreateAdd(tmp,
+		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
-	// Referenz holen und zurückschreiben
+	// Hole die Referenz um tmp zurückzuschreiben
 	getAsReference = true;
 	llvm::Value *ref = codegen(eincr->exp_);
 	getAsReference = false;
-	builder.CreateStore(val, ref);
-	// Beachte: inkrementierter Wert wird zurückgegeben
+	builder.CreateStore(tmp,ref);
+
+	// Den neuen wert zurückgeben
+	val = tmp;
 
 	indent.pop_back();
 	std::cout << indent << "Leave visitEIncr" << std::endl;
@@ -521,22 +527,27 @@ void CodeGen::visitEDecr(EDecr *edecr) {
 	std::cout << indent << "Enter visitEDecr" << std::endl;
 	indent.push_back('\t');
 
-	// Wert laden
-	val = codegen(edecr->exp_);
+	// lade den Wert den zum bearbeiten
+	llvm::Value* tmp = codegen(edecr->exp_);
 
-	if(val->getType() == llvm::Type::getDoubleTy(context)) {
-		val = builder.CreateFSub(val, llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
+	// Check variable type
+	if(tmp->getType() == llvm::Type::getDoubleTy(context)) {
+		tmp = builder.CreateFSub(tmp,
+		llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), 1.0));
 	}
 	else {
-		val = builder.CreateSub(val, llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
+		tmp = builder.CreateSub(tmp,
+		llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 1));
 	}
 
-	// Referenz holen und zurückschreiben
+	// Hole die Referenz um tmp zurückzuschreiben
 	getAsReference = true;
 	llvm::Value *ref = codegen(edecr->exp_);
 	getAsReference = false;
-	builder.CreateStore(val, ref);
-	// Beachte: inkrementierter Wert wird zurückgegeben
+	builder.CreateStore(tmp,ref);
+
+	// Den schon neuen wert zurückgeben
+	val = tmp;
 
 	indent.pop_back();
 	std::cout << "Leave visitEDecr" << std::endl;
